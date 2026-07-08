@@ -40,6 +40,17 @@ model Business {
   customDomain    String?   @unique
   logoUrl         String?
   bannerUrl       String?
+  faviconUrl      String?
+  ctaText         String?
+  phoneNumber     String?
+  email           String?
+  instagramUrl    String?
+  facebookUrl     String?
+  websiteUrl      String?
+  primaryColor    String?
+  secondaryColor  String?
+  footerText      String?
+  copyrightText   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   products        Product[]
@@ -53,6 +64,7 @@ model Product {
   price       Float
   description String?
   imageUrl    String?
+  category    String?
   inStock     Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -87,4 +99,14 @@ model OtpVerification {
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model PlatformSettings {
+  id               String  @id @default("global")
+  aiEnabled        Boolean @default(true)
+  aiTitleGen       Boolean @default(true)
+  aiDescGen        Boolean @default(true)
+  aiProductDesc    Boolean @default(true)
+  aiProductImage   Boolean @default(true)
+  aiAutoContent    Boolean @default(true)
 }

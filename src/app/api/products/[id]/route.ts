@@ -22,6 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const imageUrlInput = formData.get('imageUrl') as string | null;
     const imageFile = formData.get('image') as File | null;
     const inStock = formData.get('inStock');
+    const category = formData.get('category') as string | null;
 
     // Verify ownership through business
     const product = await prisma.product.findFirst({
@@ -55,6 +56,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         ...(description !== null && { description }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
         ...(inStock !== null && { inStock: inStock === 'true' }),
+        ...(category !== null && { category }),
       },
     });
 

@@ -24,6 +24,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
+import { uploadImageToCloudinary } from '@/lib/cloudinary';
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -32,8 +34,12 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = (session.user as any).id;
-    const body = await req.json();
-    const { name, description, whatsappNumber, location, category, templateType } = body;
+    const formData = await req.formData();
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string | null;
+    const category = formData.get('category') as string | null;
+    const location = formData.get('location') as string | null;
+    const templateType = formData.get('templateType') as string | null;
 
     if (!name) {
       return NextResponse.json({ error: 'Business name required' }, { status: 400 });
@@ -54,24 +60,60 @@ export async function POST(req: NextRequest) {
       location: location || 'India',
     });
 
+    const allowedFields = [
+      'description', 'whatsappNumber', 'location', 'category', 'templateType', 'customDomain',
+      'vision', 'mission', 'headline', 'tagline', 'about', 'marketingDesc', 
+      'ctaText', 'phoneNumber', 'email', 'instagramUrl', 'facebookUrl', 'websiteUrl',
+      'primaryColor', 'secondaryColor', 'footerText', 'copyrightText'
+    ];
+    
+    const data: any = {
+      userId,
+      name,
+      slug,
+      headline: aiContent.headline,
+      tagline: aiContent.tagline,
+      about: aiContent.about,
+      vision: aiContent.vision,
+      mission: aiContent.mission,
+      marketingDesc: aiContent.marketingDesc,
+      templateType: templateType || 'minimal',
+    };
+    
+    for (const key of allowedFields) {
+      const val = formData.get(key);
+      if (val !== null && val !== '') {
+        data[key] = val as string;
+      }
+    }
+
+    // The business ID doesn't exist yet, so we create it first, then upload images if present
     const business = await prisma.business.create({
-      data: {
-        userId,
-        name,
-        slug,
-        description,
-        whatsappNumber,
-        location,
-        category,
-        templateType: templateType || 'minimal',
-        headline: aiContent.headline,
-        tagline: aiContent.tagline,
-        about: aiContent.about,
-        vision: aiContent.vision,
-        mission: aiContent.mission,
-        marketingDesc: aiContent.marketingDesc,
-      },
+      data,
     });
+
+    // Process file uploads post-creation so we have the ID
+    const logoFile = formData.get('logo') as File | null;
+    const faviconFile = formData.get('favicon') as File | null;
+    
+    let updates: any = {};
+    if (logoFile && logoFile.size > 0) {
+      try {
+        const buffer = Buffer.from(await logoFile.arrayBuffer());
+        updates.logoUrl = await uploadImageToCloudinary(buffer, `dukaanhai/business/${business.id}/logo`);
+      } catch (err) {}
+    }
+
+    if (faviconFile && faviconFile.size > 0) {
+      try {
+        const buffer = Buffer.from(await faviconFile.arrayBuffer());
+        updates.faviconUrl = await uploadImageToCloudinary(buffer, `dukaanhai/business/${business.id}/favicon`);
+      } catch (err) {}
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await prisma.business.update({ where: { id: business.id }, data: updates });
+    }
 
     return NextResponse.json({ business }, { status: 201 });
   } catch (error) {

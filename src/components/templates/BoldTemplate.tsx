@@ -15,6 +15,19 @@ interface TemplateProps {
     whatsappNumber?: string | null;
     location?: string | null;
     category?: string | null;
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+    faviconUrl?: string | null;
+    ctaText?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
+    instagramUrl?: string | null;
+    facebookUrl?: string | null;
+    websiteUrl?: string | null;
+    primaryColor?: string | null;
+    secondaryColor?: string | null;
+    footerText?: string | null;
+    copyrightText?: string | null;
   };
   products: Array<{
     id: string;
@@ -22,6 +35,7 @@ interface TemplateProps {
     price: number;
     description?: string | null;
     imageUrl?: string | null;
+    category?: string | null;
     inStock: boolean;
   }>;
 }
@@ -48,7 +62,7 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-2 h-8 bg-orange-500 rounded-full" />
-            <h1 className="bold-display text-3xl text-white">{business.name}</h1>
+            <h1 className="bold-display text-3xl text-white">{business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}</h1>
           </div>
           <div className="flex items-center gap-4">
             {business.location && (
@@ -56,7 +70,7 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
             )}
             {waNumber && (
               <a
-                href={waLink()}
+                href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bold-body flex items-center gap-2 bg-orange-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-orange-400 transition-all"
@@ -192,38 +206,17 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
         </section>
       )}
 
-      {/* Contact Form */}
-      <section id="contact" className="py-24 bg-zinc-900 border-t border-zinc-800">
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="bold-display text-5xl text-white mb-4">Get In Touch</h3>
-            <p className="bold-body text-zinc-400">Have a question or want to place a custom order? Drop us a message.</p>
-          </div>
-
-          <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert("Thanks for reaching out! We will get back to you soon."); }}>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="bold-body block text-sm font-medium text-zinc-400 mb-2">Full Name</label>
-                <input type="text" required className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors" placeholder="John Doe" />
-              </div>
-              <div>
-                <label className="bold-body block text-sm font-medium text-zinc-400 mb-2">Email Address</label>
-                <input type="email" required className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors" placeholder="john@example.com" />
-              </div>
-            </div>
-            <div>
-              <label className="bold-body block text-sm font-medium text-zinc-400 mb-2">Message</label>
-              <textarea required rows={4} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors resize-none" placeholder="How can we help you?"></textarea>
-            </div>
-            <button type="submit" className="w-full bold-display text-2xl tracking-wide bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-xl transition-all">
-              Send Message
-            </button>
-          </form>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-zinc-800 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
+
+        <div className="flex flex-wrap gap-4 items-center justify-center mt-4 mb-4 w-full">
+          {business.instagramUrl && <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Instagram</a>}
+          {business.facebookUrl && <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Facebook</a>}
+          {business.websiteUrl && <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Website</a>}
+          {business.email && <a href={`mailto:${business.email}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Email</a>}
+          {business.phoneNumber && <a href={`tel:${business.phoneNumber}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Call Us</a>}
+        </div>
+
         <p className="bold-body text-zinc-500 text-sm">{business.name} © {new Date().getFullYear()}</p>
         <a href="/" className="bold-body text-zinc-600 hover:text-zinc-400 text-xs transition-colors">
           Made with DukaanHai

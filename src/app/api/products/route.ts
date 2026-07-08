@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     const price = formData.get('price');
     const description = formData.get('description') as string | null;
     const imageFile = formData.get('image') as File | null;
+    const category = formData.get('category') as string | null;
 
     if (!businessId || !name || price === null || price === undefined) {
       return NextResponse.json({ error: 'businessId, name, price required' }, { status: 400 });
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
         price: parseFloat(price.toString()),
         description: finalDescription,
         imageUrl: finalImageUrl,
+        category,
       },
     });
 

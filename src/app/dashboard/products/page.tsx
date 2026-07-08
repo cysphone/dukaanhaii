@@ -33,15 +33,27 @@ export default function ProductsPage() {
 
   const loadProducts = async () => {
     setLoading(true);
-    const bizRes = await fetch('/api/business/me');
-    const bizData = await bizRes.json();
-    if (bizData.business) {
-      setBusinessId(bizData.business.id);
-      const prodRes = await fetch(`/api/products?businessId=${bizData.business.id}`);
-      const prodData = await prodRes.json();
-      setProducts(prodData.products || []);
+    try {
+      const bizRes = await fetch('/api/business/me');
+      if (!bizRes.ok) throw new Error('Failed to fetch business');
+      const bizData = await bizRes.json();
+      
+      if (bizData.business) {
+        setBusinessId(bizData.business.id);
+        const prodRes = await fetch(`/api/products?businessId=${bizData.business.id}`);
+        if (prodRes.ok) {
+          const prodData = await prodRes.json();
+          setProducts(prodData.products || []);
+        } else {
+          setProducts([]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

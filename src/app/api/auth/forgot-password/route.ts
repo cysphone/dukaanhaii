@@ -81,10 +81,35 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-        const messageText = `🔒 *Password Reset Request*\n\nYou requested to reset your password for DukaanHai.\n\nClick this secure link to set a new password:\n\n${appUrl}/dashboard-access?token=${token}\n\nThis link expires in 5 minutes. If you didn't request this, ignore this message.`;
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const resetLink = `${appUrl}/dashboard-access?token=${token}`;
 
-        await sendWhatsAppMessage(user.phoneNumber, messageText);
+        if (user.phoneNumber) {
+            const messageText = `🔒 *Password Reset Request*\n\nYou requested to reset your password for DukaanHai.\n\nClick this secure link to set a new password:\n\n${resetLink}\n\nThis link expires in 5 minutes. If you didn't request this, ignore this message.`;
+            await sendWhatsAppMessage(user.phoneNumber, messageText);
+        } else if (user.email) {
+            const nodemailer = await import('nodemailer');
+            let testAccount = await nodemailer.createTestAccount();
+            const transporter = nodemailer.createTransport({
+                host: testAccount.smtp.host,
+                port: testAccount.smtp.port,
+                secure: testAccount.smtp.secure,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass,
+                },
+            });
+
+            const info = await transporter.sendMail({
+                from: '"DukaanHai Support" <support@dukaanhai.in>',
+                to: user.email,
+                subject: "Password Reset Request",
+                text: `You requested to reset your password for DukaanHai.\n\nClick this secure link to set a new password:\n\n${resetLink}\n\nThis link expires in 5 minutes. If you didn't request this, ignore this message.`,
+                html: `<p>You requested to reset your password for DukaanHai.</p><p>Click this secure link to set a new password:</p><p><a href="${resetLink}">${resetLink}</a></p><p>This link expires in 5 minutes. If you didn't request this, ignore this message.</p>`
+            });
+
+            console.log("Forgot Password Email sent! Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

@@ -1,194 +1,510 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import HomeClientLogic from '@/components/HomeClientLogic';
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
   return (
-    <div className="min-h-screen bg-surface-950 text-white overflow-hidden">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-black text-sm">D</span>
-          </div>
-          <span className="font-display text-xl font-bold tracking-tight">DukaanHai</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {session ? (
-            <Link href="/dashboard" className="bg-brand-500 hover:bg-brand-400 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all">
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="text-surface-300 hover:text-white transition-colors font-medium text-sm px-4 py-2">
-                Sign In
-              </Link>
-              <Link href="/register" className="bg-brand-500 hover:bg-brand-400 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all">
-                Start Free
-              </Link>
-            </>
-          )}
-        </div>
+    <main className="home-page-root">
+      <HomeClientLogic />
+
+      <div className="cursor" id="cursor"></div>
+      <div className="cursor-ring" id="cursorRing"></div>
+
+      {/* NAV */}
+      <nav id="nav">
+        <Link className="nav-logo" href="/" style={{ textDecoration: "none" }}>
+          <div className="logo-icon">🛍️</div>
+          DukaanHai
+        </Link>
+        <ul className="nav-links">
+          <li><Link href="#how">How It Works</Link></li>
+          <li><Link href="#features">Features</Link></li>
+          <li><Link href="#pricing">Pricing</Link></li>
+          <li>
+            {session ? (
+              <Link href="/dashboard" className="nav-cta">Dashboard →</Link>
+            ) : (
+              <Link href="/register" className="nav-cta">Start Free →</Link>
+            )}
+          </li>
+        </ul>
       </nav>
 
-      {/* Hero */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-20 pb-32 text-center">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-bg-blob blob-1"></div>
+        <div className="hero-bg-blob blob-2"></div>
+        <div className="hero-bg-blob blob-3"></div>
 
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 bg-surface-900 border border-surface-800 text-brand-400 text-sm font-semibold px-4 py-2 rounded-full mb-8">
-            <span className="w-2 h-2 bg-brand-500 rounded-full animate-pulse-slow" />
-            WhatsApp-First AI Store Builder
+        <div className="hero-inner">
+          <div className="hero-content">
+            <div className="hero-badge"><span className="badge-dot"></span> Now in Early Access — Free Forever Plan</div>
+            <h1 className="hero-title">
+              Your Online Store,<br />
+              Built on <span className="highlight">WhatsApp</span>
+            </h1>
+            <p className="hero-sub">
+              Message our AI on WhatsApp, answer a few questions, and watch your professional online store go live
+              in minutes. No code. No designers. Just results.
+            </p>
+            <div className="hero-actions">
+              {session ? (
+                <Link href="/dashboard" className="btn-primary">
+                  <span>💬</span> Go to Dashboard
+                </Link>
+              ) : (
+                <Link href="/register" className="btn-primary">
+                  <span>💬</span> Start on WhatsApp
+                </Link>
+              )}
+
+              <Link href="#how" className="btn-secondary">
+                See how it works →
+              </Link>
+            </div>
+            <div className="hero-stats">
+              <div className="stat">
+                <div className="stat-num">2 min</div>
+                <div className="stat-label">Average setup time</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num">10K+</div>
+                <div className="stat-label">Stores created</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num">₹0</div>
+                <div className="stat-label">To get started</div>
+              </div>
+            </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-tight mb-6">
-            Apni Dukaan,<br />
-            <span className="text-brand-400">Online Karo</span><br />
-            <span className="text-surface-400 text-3xl md:text-5xl font-bold">WhatsApp pe baat karo</span>
-          </h1>
+          <div className="hero-visual">
+            <div className="phone-wrap">
+              <div className="phone-glow"></div>
 
-          <p className="text-surface-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed">
-            Just send a WhatsApp message. Our AI creates your complete online store —
-            with product catalog, AI content, and a professional website. No coding needed.
-          </p>
+              <div className="floating-badge fb-1">
+                <span>🚀</span> Store Live!
+              </div>
+              <div className="floating-badge fb-2">
+                <span>🛒</span> 3 orders today
+              </div>
+              <div className="floating-badge fb-3" style={{ "fontSize": "0.72rem" }}>
+                <span style={{ "color": "var(--green)" }}>●</span> AI Writing...
+              </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/register" className="btn-primary text-base px-8 py-3.5 rounded-2xl shadow-lg shadow-brand-500/20">
-              Create Your Store Free
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-            <a
-              href="https://wa.me/+919999999999?text=Hi, I want to create my store on DukaanHai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold text-base px-8 py-3.5 rounded-2xl transition-all"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-              Setup via WhatsApp
-            </a>
+              <div className="phone">
+                <div className="phone-screen">
+                  <div className="phone-header">
+                    <div className="phone-avatar">🛍️</div>
+                    <div className="phone-contact">
+                      <div className="phone-contact-name">DukaanHai AI</div>
+                      <div className="phone-contact-status">online</div>
+                    </div>
+                  </div>
+                  <div className="phone-messages">
+                    <div className="msg msg-bot">
+                      👋 Namaste! Tell me your business name and what you sell.
+                      <div className="msg-time">10:32</div>
+                    </div>
+                    <div className="msg msg-out">
+                      Sharma Sarees, we sell handloom sarees
+                      <div className="msg-time">10:33</div>
+                    </div>
+                    <div className="msg msg-bot">
+                      Beautiful! Upload 3 product photos and I'll write AI descriptions for each.
+                      <div className="msg-time">10:33</div>
+                    </div>
+                    <div className="msg msg-out">
+                      [3 photos sent]
+                      <div className="msg-time">10:34</div>
+                    </div>
+                    <div className="msg msg-bot">
+                      ✨ Done! Your store is live:
+                      <div className="link-card">
+                        <div>sharma-sarees.dukaanhai.com</div>
+                        <div className="link-card-url">Tap to view your store →</div>
+                      </div>
+                      <div className="msg-time">10:35</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-black mb-4">How it works</h2>
-          <p className="text-surface-400 text-lg">Three steps to your online store</p>
+      {/* TICKER */}
+      <div className="ticker-wrap">
+        <div className="ticker">
+          <div className="ticker-item"><span className="ticker-dot">✦</span> WhatsApp-first setup</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> AI product descriptions</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Custom subdomain included</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Instant store link</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> No coding needed</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Secure dashboard login via WhatsApp</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> AI image optimization</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Launch in 2 minutes</div>
+          {/* Duplicate for seamless loop */}
+          <div className="ticker-item"><span className="ticker-dot">✦</span> WhatsApp-first setup</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> AI product descriptions</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Custom subdomain included</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Instant store link</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> No coding needed</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Secure dashboard login via WhatsApp</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> AI image optimization</div>
+          <div className="ticker-item"><span className="ticker-dot">✦</span> Launch in 2 minutes</div>
         </div>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              step: '01',
-              icon: '💬',
-              title: 'WhatsApp pe Message Karo',
-              desc: 'Simply message our WhatsApp number. Our AI will ask you everything about your business.',
-            },
-            {
-              step: '02',
-              icon: '🤖',
-              title: 'AI Website Banata Hai',
-              desc: 'AI generates your complete store — professional design, product descriptions, and all content automatically.',
-            },
-            {
-              step: '03',
-              icon: '🚀',
-              title: 'Share Karo & Sell Karo',
-              desc: 'Get your unique store link instantly. Share it on WhatsApp, Instagram, wherever your customers are.',
-            },
-          ].map((item) => (
-            <div key={item.step} className="bg-surface-900 border border-surface-800 rounded-2xl p-8 hover:border-brand-500/50 transition-all duration-300">
-              <div className="flex items-start justify-between mb-6">
-                <span className="text-4xl">{item.icon}</span>
-                <span className="text-brand-500/40 font-black text-4xl font-mono">{item.step}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-              <p className="text-surface-400 leading-relaxed">{item.desc}</p>
+      {/* HOW IT WORKS */}
+      <section className="section" id="how">
+        <div className="section-inner">
+          <p className="section-tag reveal">How It Works</p>
+          <h2 className="section-title reveal">From zero to store in three chats</h2>
+          <p className="section-sub reveal">No forms, no dashboards, no confusion. Just a conversation on WhatsApp.</p>
+
+          <div className="steps-grid">
+            <div className="step-card reveal reveal-delay-1">
+              <div className="step-num">01</div>
+              <div className="step-icon">💬</div>
+              <div className="step-title">Message the Bot</div>
+              <p className="step-desc">Open WhatsApp and message DukaanHai. Our AI asks you a few simple questions —
+                your business name, what you sell, and your location.</p>
             </div>
-          ))}
+            <div className="step-card reveal reveal-delay-2">
+              <div className="step-num">02</div>
+              <div className="step-icon">📸</div>
+              <div className="step-title">Send Your Products</div>
+              <p className="step-desc">Upload product photos directly on WhatsApp. Our AI optimizes images, writes
+                compelling descriptions, and sets up your catalog automatically.</p>
+            </div>
+            <div className="step-card reveal reveal-delay-3">
+              <div className="step-num">03</div>
+              <div className="step-icon">🚀</div>
+              <div className="step-title">Go Live Instantly</div>
+              <p className="step-desc">Receive your live store link — like yourshop.dukaanhai.com — directly on
+                WhatsApp. Share it anywhere and start selling immediately.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="border-y border-surface-800 bg-surface-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { label: 'Stores Created', value: '10,000+' },
-            { label: 'Products Listed', value: '50,000+' },
-            { label: 'Orders via WhatsApp', value: '1L+' },
-            { label: 'Cities', value: '500+' },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-3xl md:text-4xl font-black text-brand-400 mb-1">{stat.value}</div>
-              <div className="text-surface-400 text-sm font-medium">{stat.label}</div>
+      {/* FEATURES */}
+      <section className="features-section" id="features">
+        <div className="features-inner">
+          <p className="section-tag reveal">Everything You Need</p>
+          <h2 className="section-title reveal">Powerful features,<br />zero complexity</h2>
+          <p className="section-sub reveal">Built for India's small business owners. Everything a big brand has —
+            delivered through a WhatsApp chat.</p>
+
+          <div className="features-grid reveal">
+            <div className="feat">
+              <div className="feat-icon-wrap" style={{ "background": "rgba(37,211,102,0.12)" }}>🤖</div>
+              <div className="feat-title">AI-Written Descriptions</div>
+              <p className="feat-desc">Our AI reads your product photos and generates SEO-optimized, compelling
+                product descriptions in seconds. In Hindi or English.</p>
             </div>
-          ))}
+            <div className="feat">
+              <div className="feat-icon-wrap" style={{ "background": "rgba(255,107,43,0.12)" }}>🖼️</div>
+              <div className="feat-title">Smart Image Optimization</div>
+              <p className="feat-desc">Automatic background removal, enhancement, and resizing. Your products always
+                look professional, even from a basic smartphone photo.</p>
+            </div>
+            <div className="feat">
+              <div className="feat-icon-wrap" style={{ "background": "rgba(255,200,50,0.12)" }}>🔗</div>
+              <div className="feat-title">Instant Subdomain</div>
+              <p className="feat-desc">Get a permanent, shareable link at yourstore.dukaanhai.com. Easy to remember,
+                easy to share on any social platform or with customers.</p>
+            </div>
+            <div className="feat">
+              <div className="feat-icon-wrap" style={{ "background": "rgba(100,150,255,0.12)" }}>🔐</div>
+              <div className="feat-title">WhatsApp Login to Dashboard</div>
+              <p className="feat-desc">No passwords. We send a secure login link to your WhatsApp. Manage orders, add
+                products, and update content from any device — all through a clean dashboard.</p>
+            </div>
+            <div className="feat feat-big" style={{ "background": "rgba(255,255,255,0.05)" }}>
+              <div style={{ "display": "flex", "gap": "40px", "alignItems": "center", "flexWrap": "wrap" }}>
+                <div style={{ "flex": "1", "minWidth": "200px" }}>
+                  <div className="feat-icon-wrap" style={{ "background": "rgba(37,211,102,0.12)" }}>📊</div>
+                  <div className="feat-title">Live Store Analytics</div>
+                  <p className="feat-desc">Track visits, product views, and customer engagement in real-time. Know
+                    what's selling and what's not, right from your dashboard.</p>
+                </div>
+                <div style={{ "flex": "1", "minWidth": "200px" }}>
+                  <div className="feat-icon-wrap" style={{ "background": "rgba(255,107,43,0.12)" }}>💳</div>
+                  <div className="feat-title">Payments & Orders</div>
+                  <p className="feat-desc">Accept UPI, cards, and more. All orders land in your dashboard and a
+                    WhatsApp notification, so you never miss a sale.</p>
+                </div>
+                <div style={{ "flex": "1", "minWidth": "200px" }}>
+                  <div className="feat-icon-wrap" style={{ "background": "rgba(200,100,255,0.12)" }}>🌐</div>
+                  <div className="feat-title">Multi-language Ready</div>
+                  <p className="feat-desc">Serve customers in their preferred language. Your store can display
+                    content in Hindi, English, Tamil, Bengali, and more.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Templates Preview */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-black mb-4">Beautiful Templates</h2>
-          <p className="text-surface-400 text-lg">Professional designs for every kind of business</p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { name: 'Minimal Artisan', tag: 'Clean & Elegant', color: 'from-stone-800 to-stone-900', accent: 'bg-amber-400' },
-            { name: 'Bold Visual Brand', tag: 'Vibrant & Energetic', color: 'from-rose-900 to-orange-900', accent: 'bg-rose-400' },
-            { name: 'Mobile Catalog', tag: 'WhatsApp-Optimized', color: 'from-emerald-900 to-teal-900', accent: 'bg-emerald-400' },
-          ].map((t) => (
-            <div key={t.name} className={`bg-gradient-to-br ${t.color} border border-surface-700 rounded-2xl p-8 hover:scale-[1.02] transition-transform duration-300`}>
-              <div className={`${t.accent} w-10 h-1.5 rounded-full mb-4`} />
-              <div className="h-32 bg-surface-950/30 rounded-xl mb-6 flex items-center justify-center">
-                <span className="text-surface-500 text-sm">Template Preview</span>
+      {/* SHOWCASE */}
+      <section className="showcase-section">
+        <div className="showcase-inner">
+          <p className="section-tag reveal">Live Stores</p>
+          <h2 className="section-title reveal">Real businesses, real results</h2>
+          <p className="section-sub reveal">Thousands of sellers across India are already live on DukaanHai.</p>
+
+          <div className="store-cards reveal">
+            <div className="store-card">
+              <div className="store-img" style={{ "background": "linear-gradient(135deg,#ff9a9e,#fad0c4)", "color": "#c0392b" }}>
+                <div className="store-img-pattern" style={{ "color": "#c0392b" }}></div>
+                🌸
               </div>
-              <h3 className="font-bold text-lg mb-1">{t.name}</h3>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full bg-surface-950/40 text-surface-300`}>{t.tag}</span>
+              <div className="store-body">
+                <div className="store-name">Priya's Boutique</div>
+                <div className="store-url">priya-boutique.dukaanhai.com</div>
+                <div className="store-meta">
+                  <span className="store-pill">Fashion</span>
+                  <span className="store-pill">Mumbai</span>
+                </div>
+              </div>
             </div>
-          ))}
+            <div className="store-card">
+              <div className="store-img" style={{ "background": "linear-gradient(135deg,#a1c4fd,#c2e9fb)", "color": "#2c6fad" }}>
+                <div className="store-img-pattern" style={{ "color": "#2c6fad" }}></div>
+                ⚡
+              </div>
+              <div className="store-body">
+                <div className="store-name">Ravi Electronics</div>
+                <div className="store-url">ravi-electronics.dukaanhai.com</div>
+                <div className="store-meta">
+                  <span className="store-pill">Electronics</span>
+                  <span className="store-pill">Delhi</span>
+                </div>
+              </div>
+            </div>
+            <div className="store-card">
+              <div className="store-img" style={{ "background": "linear-gradient(135deg,#fddb92,#d1fdff)", "color": "#b8860b" }}>
+                <div className="store-img-pattern" style={{ "color": "#b8860b" }}></div>
+                🍛
+              </div>
+              <div className="store-body">
+                <div className="store-name">Amma's Kitchen</div>
+                <div className="store-url">ammas-kitchen.dukaanhai.com</div>
+                <div className="store-meta">
+                  <span className="store-pill">Food</span>
+                  <span className="store-pill">Chennai</span>
+                </div>
+              </div>
+            </div>
+            <div className="store-card">
+              <div className="store-img" style={{ "background": "linear-gradient(135deg,#a8edea,#fed6e3)", "color": "#2c9687" }}>
+                <div className="store-img-pattern" style={{ "color": "#2c9687" }}></div>
+                🌿
+              </div>
+              <div className="store-body">
+                <div className="store-name">Organic Nest</div>
+                <div className="store-url">organic-nest.dukaanhai.com</div>
+                <div className="store-meta">
+                  <span className="store-pill">Organic</span>
+                  <span className="store-pill">Pune</span>
+                </div>
+              </div>
+            </div>
+            <div className="store-card">
+              <div className="store-img" style={{ "background": "linear-gradient(135deg,#f093fb,#f5576c)", "color": "white" }}>
+                <div className="store-img-pattern" style={{ "color": "white" }}></div>
+                💎
+              </div>
+              <div className="store-body">
+                <div className="store-name">Meena Jewels</div>
+                <div className="store-url">meena-jewels.dukaanhai.com</div>
+                <div className="store-meta">
+                  <span className="store-pill">Jewellery</span>
+                  <span className="store-pill">Jaipur</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="testi-section">
+        <div className="testi-inner">
+          <p className="section-tag reveal">Testimonials</p>
+          <h2 className="section-title reveal">Sellers love DukaanHai</h2>
+
+          <div className="testi-grid">
+            <div className="testi reveal reveal-delay-1">
+              <div className="testi-stars">★★★★★</div>
+              <p className="testi-quote">"I thought I'd need to hire a developer. Within 10 minutes of chatting on
+                WhatsApp, my saree store was live. My customers couldn't believe it."</p>
+              <div className="testi-person">
+                <div className="testi-avatar" style={{ "background": "linear-gradient(135deg,#ff9a9e,#fad0c4)" }}>🌸</div>
+                <div>
+                  <div className="testi-name">Sunita Sharma</div>
+                  <div className="testi-loc">Handloom Seller, Varanasi</div>
+                </div>
+              </div>
+            </div>
+            <div className="testi reveal reveal-delay-2">
+              <div className="testi-stars">★★★★★</div>
+              <p className="testi-quote">"My old website cost ₹30,000 and took 3 months. DukaanHai did the same in 5
+                minutes for free. The AI descriptions are actually better than what I wrote!"</p>
+              <div className="testi-person">
+                <div className="testi-avatar" style={{ "background": "linear-gradient(135deg,#a1c4fd,#c2e9fb)" }}>⚡</div>
+                <div>
+                  <div className="testi-name">Ravi Malhotra</div>
+                  <div className="testi-loc">Electronics Shop, Lajpat Nagar</div>
+                </div>
+              </div>
+            </div>
+            <div className="testi reveal reveal-delay-3">
+              <div className="testi-stars">★★★★★</div>
+              <p className="testi-quote">"Ab meri dukan poori duniya dekh sakti hai! I just sent photos on WhatsApp
+                and within minutes people from other cities started ordering my food products."</p>
+              <div className="testi-person">
+                <div className="testi-avatar" style={{ "background": "linear-gradient(135deg,#fddb92,#fad0c4)" }}>🍛</div>
+                <div>
+                  <div className="testi-name">Rekha Devi</div>
+                  <div className="testi-loc">Home Food Business, Lucknow</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className="pricing-section" id="pricing">
+        <div className="pricing-inner">
+          <p className="section-tag reveal">Pricing</p>
+          <h2 className="section-title reveal" style={{ "margin": "0 auto 14px" }}>Simple, honest pricing</h2>
+          <p className="section-sub reveal" style={{ "margin": "0 auto" }}>Start free. Upgrade when you're ready to grow.</p>
+
+          <div className="pricing-grid reveal">
+            <div className="price-card">
+              <div className="price-name">Starter</div>
+              <div className="price-amount">₹0 <span>/ mo</span></div>
+              <div className="price-sub">Forever free</div>
+              <div className="price-divider"></div>
+              <ul className="price-items">
+                <li className="price-item"><span className="check">✓</span> 1 WhatsApp store setup</li>
+                <li className="price-item"><span className="check">✓</span> Up to 10 products</li>
+                <li className="price-item"><span className="check">✓</span> yourstore.dukaanhai.com</li>
+                <li className="price-item"><span className="check">✓</span> AI descriptions (5/mo)</li>
+                <li className="price-item"><span className="check">✓</span> Basic dashboard</li>
+              </ul>
+              <Link href="/register" className="btn-price btn-price-outline" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}>Get Started Free</Link>
+            </div>
+
+            <div className="price-card featured">
+              <div className="popular-badge">⚡ Most Popular</div>
+              <div className="price-name">Growth</div>
+              <div className="price-amount">₹299 <span>/ mo</span></div>
+              <div className="price-sub">Billed monthly</div>
+              <div className="price-divider"></div>
+              <ul className="price-items">
+                <li className="price-item"><span className="check">✓</span> Unlimited products</li>
+                <li className="price-item"><span className="check">✓</span> Custom domain support</li>
+                <li className="price-item"><span className="check">✓</span> Unlimited AI descriptions</li>
+                <li className="price-item"><span className="check">✓</span> Smart image optimization</li>
+                <li className="price-item"><span className="check">✓</span> Analytics dashboard</li>
+                <li className="price-item"><span className="check">✓</span> UPI + card payments</li>
+                <li className="price-item"><span className="check">✓</span> WhatsApp order alerts</li>
+              </ul>
+              <Link href="/register" className="btn-price btn-price-green" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}>Start 14-day Trial</Link>
+            </div>
+
+            <div className="price-card">
+              <div className="price-name">Business</div>
+              <div className="price-amount">₹799 <span>/ mo</span></div>
+              <div className="price-sub">For growing teams</div>
+              <div className="price-divider"></div>
+              <ul className="price-items">
+                <li className="price-item"><span className="check">✓</span> Everything in Growth</li>
+                <li className="price-item"><span className="check">✓</span> 3 team logins</li>
+                <li className="price-item"><span className="check">✓</span> Multi-language store</li>
+                <li className="price-item"><span className="check">✓</span> Priority WhatsApp support</li>
+                <li className="price-item"><span className="check">✓</span> Advanced analytics</li>
+                <li className="price-item"><span className="check">✓</span> Bulk product upload</li>
+              </ul>
+              <Link href="mailto:support@dukaanhai.com" className="btn-price btn-price-outline" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}>Contact Us</Link>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="bg-gradient-to-br from-brand-500 to-brand-700 rounded-3xl p-12 md:p-16 text-center">
-          <h2 className="text-3xl md:text-5xl font-black mb-4">Aaj shuru karo, free mein</h2>
-          <p className="text-brand-100 text-lg mb-10 max-w-xl mx-auto">
-            Join thousands of local sellers who are already selling online with DukaanHai.
-            No credit card required.
-          </p>
-          <Link href="/register" className="inline-flex items-center gap-2 bg-white text-brand-700 font-bold text-lg px-10 py-4 rounded-2xl hover:bg-brand-50 transition-all shadow-xl">
-            Abhi Banao Apni Dukaan
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
+      <section className="cta-section">
+        <div className="cta-inner reveal">
+          <h2 className="cta-title">Your store is one WhatsApp message away</h2>
+          <p className="cta-sub">Join 10,000+ small businesses who launched their online store in minutes — for free.</p>
+          <div className="cta-input-group">
+            <input className="cta-input" type="tel" placeholder="Enter your WhatsApp number..." />
+            <Link href="/register" className="btn-cta" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>Get My Store Link 🚀</Link>
+          </div>
+          <p className="cta-note">We'll send you a WhatsApp message to get started. No spam, ever.</p>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-surface-800 max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-brand-500 rounded-md flex items-center justify-center">
-            <span className="text-white font-black text-xs">D</span>
+      {/* FOOTER */}
+      <footer>
+        <div className="footer-inner">
+          <div className="footer-top">
+            <div className="footer-brand">
+              <Link className="nav-logo" href="/" style={{ "textDecoration": "none" }}>
+                <div className="logo-icon">🛍️</div>
+                DukaanHai
+              </Link>
+              <p className="footer-desc">Making India's small businesses unstoppable — one WhatsApp message at a time.
+              </p>
+            </div>
+            <div className="footer-col">
+              <h5>Product</h5>
+              <ul>
+                <li><Link href="#how">How It Works</Link></li>
+                <li><Link href="#features">Features</Link></li>
+                <li><Link href="#pricing">Pricing</Link></li>
+                <li><Link href="#">Demo Store</Link></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h5>Company</h5>
+              <ul>
+                <li><Link href="#">About</Link></li>
+                <li><Link href="#">Blog</Link></li>
+                <li><Link href="#">Careers</Link></li>
+                <li><Link href="#">Press</Link></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h5>Support</h5>
+              <ul>
+                <li><Link href="#">Help Center</Link></li>
+                <li><Link href="#">WhatsApp Support</Link></li>
+                <li><Link href="#">Privacy Policy</Link></li>
+                <li><Link href="#">Terms of Service</Link></li>
+              </ul>
+            </div>
           </div>
-          <span className="font-bold">DukaanHai</span>
-        </div>
-        <p className="text-surface-500 text-sm">© 2024 DukaanHai. Made with ❤️ for Indian sellers.</p>
-        <div className="flex items-center gap-6 text-surface-500 text-sm">
-          <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-          <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <div className="footer-bottom">
+            <p>© 2025 DukaanHai. Made with ❤️ in India.</p>
+            <div className="footer-social">
+              <Link href="#" className="social-btn">𝕏</Link>
+              <Link href="#" className="social-btn">in</Link>
+              <Link href="#" className="social-btn">📷</Link>
+              <Link href="#" className="social-btn">▶</Link>
+            </div>
+          </div>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }

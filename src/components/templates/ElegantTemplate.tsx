@@ -3,27 +3,41 @@
 import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
-    business: {
-        name: string;
-        slug: string;
-        headline?: string | null;
-        tagline?: string | null;
-        about?: string | null;
-        vision?: string | null;
-        mission?: string | null;
-        marketingDesc?: string | null;
-        whatsappNumber?: string | null;
-        location?: string | null;
-        category?: string | null;
-    };
-    products: Array<{
-        id: string;
-        name: string;
-        price: number;
-        description?: string | null;
-        imageUrl?: string | null;
-        inStock: boolean;
-    }>;
+  business: {
+    name: string;
+    slug: string;
+    headline?: string | null;
+    tagline?: string | null;
+    about?: string | null;
+    vision?: string | null;
+    mission?: string | null;
+    marketingDesc?: string | null;
+    whatsappNumber?: string | null;
+    location?: string | null;
+    category?: string | null;
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+    faviconUrl?: string | null;
+    ctaText?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
+    instagramUrl?: string | null;
+    facebookUrl?: string | null;
+    websiteUrl?: string | null;
+    primaryColor?: string | null;
+    secondaryColor?: string | null;
+    footerText?: string | null;
+    copyrightText?: string | null;
+  };
+  products: Array<{
+    id: string;
+    name: string;
+    price: number;
+    description?: string | null;
+    imageUrl?: string | null;
+    category?: string | null;
+    inStock: boolean;
+  }>;
 }
 
 export default function ElegantTemplate({ business, products }: TemplateProps) {
@@ -56,7 +70,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                 <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
                     <div className="flex flex-col">
                         <h1 className="elegant-display text-2xl font-semibold tracking-wide text-[#2C2A29]">
-                            {business.name}
+                            {business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}
                         </h1>
                         {business.tagline && (
                             <span className="elegant-body text-[10px] uppercase tracking-[0.3em] text-[#8B8682] mt-1">
@@ -73,7 +87,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                         )}
                         {waNumber && (
                             <a
-                                href={waLink()}
+                                href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="elegant-body text-xs tracking-[0.2em] uppercase bg-[#2C2A29] text-[#FDFBF7] px-6 py-3 hover:bg-[#D4AF37] transition-colors duration-500"
@@ -239,6 +253,15 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
 
             {/* Footer */}
             <footer className="py-16 px-8 bg-[#FDFBF7] border-t border-[#E8DCC4] text-center">
+
+        <div className="flex flex-wrap gap-4 items-center justify-center mt-4 mb-4 w-full">
+          {business.instagramUrl && <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Instagram</a>}
+          {business.facebookUrl && <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Facebook</a>}
+          {business.websiteUrl && <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Website</a>}
+          {business.email && <a href={`mailto:${business.email}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Email</a>}
+          {business.phoneNumber && <a href={`tel:${business.phoneNumber}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Call Us</a>}
+        </div>
+
                 <h2 className="elegant-display text-2xl text-[#2C2A29] mb-4">{business.name}</h2>
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 mb-8">
                     {business.category && <span className="elegant-body text-[10px] uppercase tracking-widest text-[#8B8682]">{business.category}</span>}

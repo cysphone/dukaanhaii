@@ -25,9 +25,38 @@ export async function GET(req: NextRequest) {
 }
 
 // Incoming messages
+
+const getTemplatePrompt = (title: string) => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+  return `${title}\n\n1️⃣ *Minimal* — Clean & Elegant (Preview: ${appUrl}/store/demo?template=minimal)\n2️⃣ *Bold* — Vibrant & Energetic (Preview: ${appUrl}/store/demo?template=bold)\n3️⃣ *Catalog* — Mobile Optimized (Preview: ${appUrl}/store/demo?template=catalog)\n4️⃣ *Elegant* — Luxurious & Refined (Preview: ${appUrl}/store/demo?template=elegant)\n5️⃣ *Futuristic* — Modern & Tech-Savvy (Preview: ${appUrl}/store/demo?template=futuristic)\n6️⃣ *Playful* — Fun & Colorful (Preview: ${appUrl}/store/demo?template=playful)\n\nReply with 1, 2, 3, 4, 5, or 6`;
+};
+
+
+// Helper to upload WA image inside business creation
+async function uploadWaImage(imageId: string, folder: string) {
+  try {
+    const waMediaUrl = `https://graph.facebook.com/v20.0/${imageId}`;
+    const mediaRes = await fetch(waMediaUrl, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN!}` } });
+    const mediaData = await mediaRes.json();
+    if (mediaData.url) {
+      const imageRes = await fetch(mediaData.url, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN!}` } });
+      const arrayBuffer = await imageRes.arrayBuffer();
+      return await uploadImageToCloudinary(Buffer.from(arrayBuffer), folder);
+    }
+  } catch (e) {
+    console.error('Error uploading WA image:', e);
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+  let platformSettingsData = await prisma.platformSettings.findUnique({ where: { id: "global" } });
+  const platformSettings = platformSettingsData || {
+    id: "global", aiEnabled: true, aiTitleGen: true, aiDescGen: true, aiProductDesc: true, aiProductImage: true, aiAutoContent: true
+  };
     const entry = body?.entry?.[0];
     const change = entry?.changes?.[0];
     const message = change?.value?.messages?.[0];
@@ -40,37 +69,55 @@ export async function POST(req: NextRequest) {
     const text = message.text?.body?.trim() || '';
 
     // Get or create session
-    let session = await prisma.whatsappSession.upsert({
-      where: { phoneNumber },
-      create: { phoneNumber, step: 'start', collectedData: {} },
-      update: { updatedAt: new Date() },
+    let session = await prisma.whatsappSession.findUnique({
+      where: { phoneNumber }
     });
+
+    const now = new Date();
+    const timeoutThreshold = 30 * 60 * 1000; // 30 minutes
+    let isTimeout = false;
+
+    if (session && (now.getTime() - session.updatedAt.getTime() > timeoutThreshold) && session.step !== 'completed' && session.step !== 'start' && session.step !== 'main_menu') {
+      isTimeout = true;
+    }
+
+    if (!session) {
+      session = await prisma.whatsappSession.create({
+        data: { phoneNumber, step: 'start', collectedData: {} }
+      });
+    } else {
+      session = await prisma.whatsappSession.update({
+        where: { phoneNumber },
+        data: { updatedAt: now }
+      });
+    }
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
     const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
 
     const msgUpper = text.toUpperCase();
 
-    // -- Global Command Interceptor --
-    if (['DASHBOARD', 'RESET', 'MENU', 'HELP'].includes(msgUpper)) {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: dummyEmail },
-            { phoneNumber }
-          ]
-        },
-        include: { businesses: true }
-      });
-      const existingBusiness = existingUser?.businesses?.[0];
+    // Check if user has an existing account/business
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: dummyEmail },
+          { phoneNumber }
+        ]
+      },
+      include: { businesses: true }
+    });
+    const existingBusiness = existingUser?.businesses?.[0];
 
-      if (msgUpper === 'HELP') {
+    // -- Global Command Interceptor --
+    if (['DASHBOARD', 'RESET', 'MENU', 'HELP'].includes(msgUpper) || isTimeout) {
+      if (msgUpper === 'HELP' && !isTimeout) {
         const helpText = `🛠️ *DukaanHai Help Menu*\n\nHere are some main commands you can use at any time:\n\n*MENU* or *RESET* - Return to the main menu.\n*DASHBOARD* - Get a direct secure link to your store dashboard.\n*HELP* - View this help list.\n\n_Note: If you are creating a new site, please answer the questions directly._`;
         await sendWhatsAppMessage(phoneNumber, helpText);
         return NextResponse.json({ status: 'ok' });
       }
 
-      if (msgUpper === 'DASHBOARD') {
+      if (msgUpper === 'DASHBOARD' && !isTimeout) {
         if (!existingUser) {
           await sendWhatsAppMessage(phoneNumber, `No account found. Please create your store first by typing *RESET*.`);
           return NextResponse.json({ status: 'ok' });
@@ -101,49 +148,38 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ status: 'ok' });
       }
 
-      if (msgUpper === 'RESET' || msgUpper === 'MENU') {
+      if (msgUpper === 'RESET' || msgUpper === 'MENU' || isTimeout) {
         if (existingBusiness) {
-          await prisma.whatsappSession.update({
+          session = await prisma.whatsappSession.update({
             where: { phoneNumber },
             data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } },
           });
-          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n\nReply with 1, 2, 3, 4, or 5.`;
-          await sendWhatsAppMessage(phoneNumber, `✅ Menu returned!\n\n${replyText}`);
+          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+          const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : (msgUpper === 'MENU' || msgUpper === 'RESET' ? `✅ Menu returned!\n\n` : '');
+          await sendWhatsAppMessage(phoneNumber, `${prefix}${replyText}`);
           return NextResponse.json({ status: 'ok' });
         } else {
-          await prisma.whatsappSession.update({
+          session = await prisma.whatsappSession.update({
             where: { phoneNumber },
             data: { step: 'start', collectedData: {} },
           });
-          await sendWhatsAppMessage(phoneNumber, `✅ Reset successful!\n\n*Please enter your new store name:*`);
+          const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : `✅ Reset successful!\n\n`;
+          await sendWhatsAppMessage(phoneNumber, `${prefix}*Please enter your new store name:*`);
           return NextResponse.json({ status: 'ok' });
         }
       }
     }
 
-    // Detect Returning Users
+    // Detect Returning Users automatically (if step is start but they already have an account)
     if (session.step === 'start') {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: dummyEmail },
-            { phoneNumber },
-          ]
-        },
-        include: { businesses: true }
-      });
-      const existingBusiness = existingUser?.businesses?.[0];
-
       if (existingBusiness) {
         session = await prisma.whatsappSession.update({
           where: { phoneNumber },
           data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } }
         });
-        if (msgUpper !== 'RESET' && msgUpper !== 'MENU') {
-          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n\nReply with 1, 2, 3, 4, or 5.`;
-          await sendWhatsAppMessage(phoneNumber, replyText);
-          return NextResponse.json({ status: 'ok' });
-        }
+        const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+        await sendWhatsAppMessage(phoneNumber, replyText);
+        return NextResponse.json({ status: 'ok' });
       } else if (existingUser) {
         // User exists but has no store yet — continue with store creation
         session = await prisma.whatsappSession.update({
@@ -160,6 +196,21 @@ export async function POST(req: NextRequest) {
     let replyText = '';
     let nextStep = session.step;
 
+
+    const getDescPrompt = (prefix: string) => {
+      if (platformSettings.aiEnabled && platformSettings.aiDescGen) {
+        return {
+          replyText: `${prefix}\n\nNow let's set up your *Store Description.*\n\n🤖 Would you like AI to generate an SEO-friendly description for you?\n\n1️⃣ *Yes, generate AI description*\n2️⃣ *No, I'll write my own*\n\nReply with 1 or 2.`,
+          nextStep: 'ask_ai_desc'
+        };
+      } else {
+        return {
+          replyText: `${prefix}\n\nNow let's set up your *Store Description.*\n\n*Please type your store description:*`,
+          nextStep: 'collect_desc'
+        };
+      }
+    };
+
     switch (session.step) {
       case 'start':
         replyText = `🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please enter your store name:*`;
@@ -167,7 +218,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'main_menu':
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n\nReply with 1, 2, 3, 4, or 5.`;
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n\nReply with 1, 2, 3, 4, 5, or 6.`;
         nextStep = 'handle_menu_choice';
         break;
 
@@ -206,6 +257,140 @@ export async function POST(req: NextRequest) {
           nextStep = 'handle_menu_choice';
         }
         break;
+
+      
+      case 'handle_branding_choice':
+        if (text === '1') {
+          replyText = `📝 Send your new 'About Us' text:`;
+          nextStep = 'edit_about_us';
+        } else if (text === '2') {
+          replyText = `📸 Please send an Image to use as your Brand Logo.\n(Type MENU to cancel)`;
+          nextStep = 'edit_logo';
+        } else if (text === '3') {
+          replyText = `🖼️ Please send a small, square Image to use as your Favicon.\n(Type MENU to cancel)`;
+          nextStep = 'edit_favicon';
+        } else if (text === '4') {
+          replyText = `🎨 What are your new brand colors?\n\nReply with a Primary Color and Secondary Color (e.g., 'Blue and White' or '#000000 and #ffffff').`;
+          nextStep = 'edit_colors';
+        } else if (text === '5') {
+          replyText = `🔗 Send your new social media links (Instagram, Facebook, Website) separated by commas.`;
+          nextStep = 'edit_socials';
+        } else if (text === '6') {
+          replyText = `📞 Send your new business Phone Number and Email separated by a comma.`;
+          nextStep = 'edit_contact';
+        } else if (text === '7') {
+          replyText = `📝 Send your new Footer Text and Copyright Text separated by a comma.`;
+          nextStep = 'edit_footer';
+        } else {
+          replyText = `Please reply with a number 1-7.\n\n1️⃣ About Us\n2️⃣ Brand Logo\n3️⃣ Favicon\n4️⃣ Brand Colors\n5️⃣ Social Links\n6️⃣ Contact Info\n7️⃣ Footer & Copyright`;
+          nextStep = 'handle_branding_choice';
+        }
+        break;
+
+      case 'edit_about_us':
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { about: text }
+        });
+        replyText = `✅ About Us updated successfully!\n\nType *MENU* to go back to the main menu.`;
+        nextStep = 'completed';
+        break;
+
+      case 'edit_logo':
+        if (message.image && message.image.id) {
+          replyText = `⏳ Uploading your new logo...`;
+          nextStep = 'uploading_logo';
+          const busId = collectedData.businessId;
+          uploadWaImage(message.image.id, `dukaanhai/business/logos`).then(async (url) => {
+             if (url) {
+               await prisma.business.update({ where: { id: busId }, data: { logoUrl: url }});
+               await sendWhatsAppMessage(phoneNumber, `✅ Logo updated successfully!\n\nType *MENU* to go back.`);
+               await prisma.whatsappSession.update({ where: { phoneNumber }, data: { step: 'completed' }});
+             } else {
+               await sendWhatsAppMessage(phoneNumber, `❌ Failed to upload logo. Type *MENU* to go back.`);
+             }
+          });
+        } else {
+          replyText = `Please send an actual *Photo (Image)*.`;
+          nextStep = 'edit_logo';
+        }
+        break;
+
+      case 'uploading_logo':
+        replyText = `⏳ Please wait while the logo uploads...`;
+        nextStep = 'uploading_logo';
+        break;
+
+      case 'edit_favicon':
+        if (message.image && message.image.id) {
+          replyText = `⏳ Uploading your new favicon...`;
+          nextStep = 'uploading_favicon';
+          const busId = collectedData.businessId;
+          uploadWaImage(message.image.id, `dukaanhai/business/favicons`).then(async (url) => {
+             if (url) {
+               await prisma.business.update({ where: { id: busId }, data: { faviconUrl: url }});
+               await sendWhatsAppMessage(phoneNumber, `✅ Favicon updated successfully!\n\nType *MENU* to go back.`);
+               await prisma.whatsappSession.update({ where: { phoneNumber }, data: { step: 'completed' }});
+             } else {
+               await sendWhatsAppMessage(phoneNumber, `❌ Failed to upload favicon. Type *MENU* to go back.`);
+             }
+          });
+        } else {
+          replyText = `Please send an actual *Photo (Image)*.`;
+          nextStep = 'edit_favicon';
+        }
+        break;
+
+      case 'uploading_favicon':
+        replyText = `⏳ Please wait while the favicon uploads...`;
+        nextStep = 'uploading_favicon';
+        break;
+
+      case 'edit_colors': {
+        const parts = text.split(/and|,/i).map((s: string) => s.trim()).filter(Boolean);
+        let primaryColor = parts[0] || null;
+        let secondaryColor = parts[1] || null;
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { primaryColor, secondaryColor }
+        });
+        replyText = `✅ Colors updated successfully!\n\nType *MENU* to go back to the main menu.`;
+        nextStep = 'completed';
+        break;
+      }
+
+      case 'edit_socials': {
+        const links = text.split(',').map((s: string) => s.trim()).filter(Boolean);
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { instagramUrl: links[0] || null, facebookUrl: links[1] || null, websiteUrl: links[2] || null }
+        });
+        replyText = `✅ Social links updated successfully!\n\nType *MENU* to go back to the main menu.`;
+        nextStep = 'completed';
+        break;
+      }
+
+      case 'edit_contact': {
+        const contacts = text.split(',').map((s: string) => s.trim()).filter(Boolean);
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { phoneNumber: contacts[0] || null, email: contacts[1] || null }
+        });
+        replyText = `✅ Contact info updated successfully!\n\nType *MENU* to go back to the main menu.`;
+        nextStep = 'completed';
+        break;
+      }
+
+      case 'edit_footer': {
+        const footers = text.split(',').map((s: string) => s.trim()).filter(Boolean);
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { footerText: footers[0] || null, copyrightText: footers[1] || null }
+        });
+        replyText = `✅ Footer info updated successfully!\n\nType *MENU* to go back to the main menu.`;
+        nextStep = 'completed';
+        break;
+      }
 
       case 'save_website_template': {
         const templates: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog', '4': 'elegant', '5': 'futuristic', '6': 'playful' };
@@ -548,6 +733,91 @@ export async function POST(req: NextRequest) {
 
       // ─────────────── TEMPLATE & BUSINESS CREATION ───────────────
 
+      
+      case 'collect_about_us': {
+        if (text.toUpperCase() !== 'SKIP') {
+          collectedData.about = text;
+        }
+        replyText = `📸 Please send an Image to use as your Brand Logo.\n\n(Send a photo, or type SKIP)`;
+        nextStep = 'collect_logo';
+        break;
+      }
+
+      case 'collect_logo': {
+        if (text.toUpperCase() === 'SKIP') {
+          replyText = `🖼️ Please send a small, square Image to use as your Favicon (browser tab icon).\n\n(Send a photo, or type SKIP)`;
+          nextStep = 'collect_favicon';
+        } else if (message.image && message.image.id) {
+          collectedData.logoImageId = message.image.id;
+          replyText = `🖼️ Logo received! Now please send a small, square Image to use as your Favicon (browser tab icon).\n\n(Send a photo, or type SKIP)`;
+          nextStep = 'collect_favicon';
+        } else {
+          replyText = `Please send an actual *Photo (Image)*, or type SKIP.`;
+          nextStep = 'collect_logo';
+        }
+        break;
+      }
+
+      case 'collect_favicon': {
+        if (text.toUpperCase() === 'SKIP') {
+          replyText = `🎨 What are your brand colors?\n\nReply with a Primary Color and Secondary Color (e.g., 'Blue and White' or Hex Codes).\n\n(Reply with text, or type SKIP)`;
+          nextStep = 'collect_colors';
+        } else if (message.image && message.image.id) {
+          collectedData.faviconImageId = message.image.id;
+          replyText = `🎨 Favicon received! What are your brand colors?\n\nReply with a Primary Color and Secondary Color (e.g., 'Blue and White' or '#ff0000 and #ffffff').\n\n(Reply with text, or type SKIP)`;
+          nextStep = 'collect_colors';
+        } else {
+          replyText = `Please send an actual *Photo (Image)*, or type SKIP.`;
+          nextStep = 'collect_favicon';
+        }
+        break;
+      }
+
+      case 'collect_colors': {
+        if (text.toUpperCase() !== 'SKIP') {
+           // Basic parsing: split by 'and' or ','
+           const parts = text.split(/and|,/i).map((s: string) => s.trim()).filter(Boolean);
+           if (parts.length > 0) collectedData.primaryColor = parts[0];
+           if (parts.length > 1) collectedData.secondaryColor = parts[1];
+        }
+        replyText = `🔗 Send your social media links (Instagram, Facebook, Website) separated by commas.\n\n(Or type SKIP)`;
+        nextStep = 'collect_socials';
+        break;
+      }
+
+      case 'collect_socials': {
+        if (text.toUpperCase() !== 'SKIP') {
+           const links = text.split(',').map((s: string) => s.trim()).filter(Boolean);
+           if (links[0]) collectedData.instagramUrl = links[0];
+           if (links[1]) collectedData.facebookUrl = links[1];
+           if (links[2]) collectedData.websiteUrl = links[2];
+        }
+        replyText = `📞 Send your business Phone Number and Email separated by a comma.\n\n(Or type SKIP)`;
+        nextStep = 'collect_contact';
+        break;
+      }
+
+      case 'collect_contact': {
+        if (text.toUpperCase() !== 'SKIP') {
+           const contacts = text.split(',').map((s: string) => s.trim()).filter(Boolean);
+           if (contacts[0]) collectedData.contactPhone = contacts[0];
+           if (contacts[1]) collectedData.contactEmail = contacts[1];
+        }
+        replyText = `📝 Send your custom Footer Text and Copyright Text separated by a comma.\n\n(Or type SKIP)`;
+        nextStep = 'collect_footer';
+        break;
+      }
+
+      case 'collect_footer': {
+        if (text.toUpperCase() !== 'SKIP') {
+           const footers = text.split(',').map((s: string) => s.trim()).filter(Boolean);
+           if (footers[0]) collectedData.footerText = footers[0];
+           if (footers[1]) collectedData.copyrightText = footers[1];
+        }
+        replyText = getTemplatePrompt('✅ Store details saved!\n\n*Please choose a website template:*');
+        nextStep = 'collect_template';
+        break;
+      }
       case 'collect_template': {
         const templateMap: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog', '4': 'elegant', '5': 'futuristic', '6': 'playful' };
         collectedData.template = templateMap[text] || 'minimal';
@@ -893,6 +1163,13 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
   const mission: string | null = aiContent.mission || null;
   const marketingDesc: string | null = aiContent.marketingDesc || null;
 
+  
+
+  let logoUrl = null;
+  let faviconUrl = null;
+  if (data.logoImageId) logoUrl = await uploadWaImage(data.logoImageId, `dukaanhai/business/logos`);
+  if (data.faviconImageId) faviconUrl = await uploadWaImage(data.faviconImageId, `dukaanhai/business/favicons`);
+
   const business = await prisma.business.create({
     data: {
       userId: user.id,
@@ -905,10 +1182,21 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
       templateType: data.template || 'minimal',
       headline,
       tagline,
-      about,
       vision,
       mission,
       marketingDesc,
+      about: data.about || about,
+      logoUrl,
+      faviconUrl,
+      primaryColor: data.primaryColor,
+      secondaryColor: data.secondaryColor,
+      instagramUrl: data.instagramUrl,
+      facebookUrl: data.facebookUrl,
+      websiteUrl: data.websiteUrl,
+      phoneNumber: data.contactPhone || data.whatsapp || phoneNumber,
+      email: data.contactEmail || user.email,
+      footerText: data.footerText,
+      copyrightText: data.copyrightText,
     },
   });
 

@@ -3,27 +3,41 @@
 import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
-    business: {
-        name: string;
-        slug: string;
-        headline?: string | null;
-        tagline?: string | null;
-        about?: string | null;
-        vision?: string | null;
-        mission?: string | null;
-        marketingDesc?: string | null;
-        whatsappNumber?: string | null;
-        location?: string | null;
-        category?: string | null;
-    };
-    products: Array<{
-        id: string;
-        name: string;
-        price: number;
-        description?: string | null;
-        imageUrl?: string | null;
-        inStock: boolean;
-    }>;
+  business: {
+    name: string;
+    slug: string;
+    headline?: string | null;
+    tagline?: string | null;
+    about?: string | null;
+    vision?: string | null;
+    mission?: string | null;
+    marketingDesc?: string | null;
+    whatsappNumber?: string | null;
+    location?: string | null;
+    category?: string | null;
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+    faviconUrl?: string | null;
+    ctaText?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
+    instagramUrl?: string | null;
+    facebookUrl?: string | null;
+    websiteUrl?: string | null;
+    primaryColor?: string | null;
+    secondaryColor?: string | null;
+    footerText?: string | null;
+    copyrightText?: string | null;
+  };
+  products: Array<{
+    id: string;
+    name: string;
+    price: number;
+    description?: string | null;
+    imageUrl?: string | null;
+    category?: string | null;
+    inStock: boolean;
+  }>;
 }
 
 export default function PlayfulTemplate({ business, products }: TemplateProps) {
@@ -63,7 +77,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                             ✨
                         </div>
                         <h1 className="playful-display text-2xl font-bold tracking-tight text-[#2D3142]">
-                            {business.name}
+                            {business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}
                         </h1>
                     </div>
                     <div className="flex items-center gap-4">
@@ -74,7 +88,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                         )}
                         {waNumber && (
                             <a
-                                href={waLink()}
+                                href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="playful-body bg-[#4ECDC4] text-[#2D3142] font-black text-sm px-5 py-2.5 rounded-xl brutal-border brutal-shadow brutal-shadow-hover transition-all flex items-center gap-2"
@@ -236,6 +250,15 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
 
             {/* Footer */}
             <footer className="bg-[#2D3142] text-white py-12 px-6 border-t-8 border-[#FF6B6B] relative z-20">
+
+        <div className="flex flex-wrap gap-4 items-center justify-center mt-4 mb-4 w-full">
+          {business.instagramUrl && <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Instagram</a>}
+          {business.facebookUrl && <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Facebook</a>}
+          {business.websiteUrl && <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Website</a>}
+          {business.email && <a href={`mailto:${business.email}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Email</a>}
+          {business.phoneNumber && <a href={`tel:${business.phoneNumber}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Call Us</a>}
+        </div>
+
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-3">
                         <span className="text-3xl rotate-12">🎪</span>

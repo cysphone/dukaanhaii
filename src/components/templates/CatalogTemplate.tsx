@@ -15,6 +15,19 @@ interface TemplateProps {
     whatsappNumber?: string | null;
     location?: string | null;
     category?: string | null;
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+    faviconUrl?: string | null;
+    ctaText?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
+    instagramUrl?: string | null;
+    facebookUrl?: string | null;
+    websiteUrl?: string | null;
+    primaryColor?: string | null;
+    secondaryColor?: string | null;
+    footerText?: string | null;
+    copyrightText?: string | null;
   };
   products: Array<{
     id: string;
@@ -22,6 +35,7 @@ interface TemplateProps {
     price: number;
     description?: string | null;
     imageUrl?: string | null;
+    category?: string | null;
     inStock: boolean;
   }>;
 }
@@ -74,7 +88,7 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
         {waNumber && (
           <div className="px-5 -mt-6 mb-6 relative z-10">
             <a
-              href={waLink()}
+              href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2.5 bg-[#25D366] text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-500/30 hover:bg-[#20bd5a] transition-all text-sm"
@@ -101,7 +115,7 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
               <span className="text-5xl block mb-3">🛍️</span>
               <p className="text-gray-500 text-sm font-semibold">Products coming soon!</p>
               {waNumber && (
-                <a href={waLink()} target="_blank" rel="noopener noreferrer" className="text-emerald-600 text-sm font-bold mt-2 block">
+                <a href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }} target="_blank" rel="noopener noreferrer" className="text-emerald-600 text-sm font-bold mt-2 block">
                   Ask on WhatsApp →
                 </a>
               )}
