@@ -97,12 +97,13 @@ export async function POST(req: NextRequest) {
 
     const msgUpper = text.toUpperCase();
 
-    // Check if user has an existing account/business
+    // Check if user has an existing account/business (check with and without + prefix)
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email: dummyEmail },
-          { phoneNumber }
+          { phoneNumber },
+          { phoneNumber: `+${phoneNumber}` } // Dashboards save it as +91...
         ]
       },
       include: { businesses: true }
@@ -1129,13 +1130,20 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
   const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
 
   let user = await prisma.user.findFirst({
-    where: { email: dummyEmail },
+    where: {
+      OR: [
+        { email: dummyEmail },
+        { phoneNumber },
+        { phoneNumber: `+${phoneNumber}` }
+      ]
+    },
   });
 
   if (!user) {
     user = await prisma.user.create({
       data: {
         email: dummyEmail,
+        phoneNumber: `+${phoneNumber}`, // Claim the number!
         name: data.name,
         createdVia: 'whatsapp'
       },
