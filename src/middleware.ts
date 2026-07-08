@@ -20,7 +20,9 @@ export function middleware(request: NextRequest) {
   // If it's a subdomain (not www or root)
   if (subdomain && subdomain !== 'www' && subdomain !== rootDomain && !hostname.startsWith(rootDomain)) {
     // Rewrite to /store/[slug]
-    url.pathname = `/store/${subdomain}${url.pathname}`;
+    if (!url.pathname.startsWith('/store/')) {
+      url.pathname = `/store/${subdomain}${url.pathname}`;
+    }
     return NextResponse.rewrite(url);
   }
 

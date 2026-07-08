@@ -49,35 +49,11 @@ export function getStoreUrl(slug: string): string {
 }
 
 export function getProductUrl(slug: string, productId: string): string {
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
-
-  const isDev = process.env.NODE_ENV === 'development';
-  const isTestDomain = rootDomain.includes('ngrok') ||
-    rootDomain.includes('vercel.app') ||
-    rootDomain.includes('localhost') ||
-    rootDomain.includes('127.0.0.1');
-
-  if (isDev || isTestDomain) {
-    return `/store/${slug}/product/${productId}`;
-  }
-
-  return `/product/${productId}`; // On a subdomain, we just use /product/[id]
+  return `/store/${slug}/product/${productId}`;
 }
 
 export function getStorePath(slug: string): string {
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
-
-  const isDev = process.env.NODE_ENV === 'development';
-  const isTestDomain = rootDomain.includes('ngrok') ||
-    rootDomain.includes('vercel.app') ||
-    rootDomain.includes('localhost') ||
-    rootDomain.includes('127.0.0.1');
-
-  if (isDev || isTestDomain) {
-    return `/store/${slug}`;
-  }
-
-  return `/`; // Root of the subdomain
+  return `/store/${slug}`;
 }
 
 

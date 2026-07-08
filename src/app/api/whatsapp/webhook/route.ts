@@ -1019,7 +1019,8 @@ export async function POST(req: NextRequest) {
           nextStep = 'ask_ai_image';
 
           // Prefetch image buffer async then ask about AI
-          handlePrefetchAndAskAI(phoneNumber, Object.assign({}, collectedData), message, (session as any).imageGenCredits ?? 3).catch(console.error);
+          const aiEnabled = platformSettings.aiEnabled && platformSettings.aiProductImage;
+          handlePrefetchAndAskAI(phoneNumber, Object.assign({}, collectedData), message, (session as any).imageGenCredits ?? 3, aiEnabled).catch(console.error);
         }
         break;
       }
@@ -1287,7 +1288,8 @@ async function handlePrefetchAndAskAI(
   phoneNumber: string,
   data: any,
   message: any,
-  imageGenCredits: number
+  imageGenCredits: number,
+  aiEnabled: boolean
 ) {
   try {
     const image = message.image;
@@ -1312,7 +1314,7 @@ async function handlePrefetchAndAskAI(
       data: { step: 'ask_ai_image', collectedData: data },
     });
 
-    if (imageGenCredits > 0) {
+    if (imageGenCredits > 0 && aiEnabled) {
       await sendWhatsAppMessage(
         phoneNumber,
         `✅ Photo received!\n\n🤖 *Want AI to enhance it?*\n\nI can remove the background and create a professional studio-quality product photo.\n\n🎨 *${imageGenCredits} AI image credit${imageGenCredits !== 1 ? 's' : ''} remaining*\n\n1️⃣ *YES* - Generate AI image\n2️⃣ *NO* - Use my original photo`
