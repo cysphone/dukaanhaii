@@ -286,8 +286,8 @@ export async function POST(req: NextRequest) {
           replyText = `🎨 *What branding detail would you like to edit?*\n\n1️⃣ About Us\n2️⃣ Brand Logo\n3️⃣ Favicon\n4️⃣ Brand Colors\n5️⃣ Social Links\n6️⃣ Contact Info\n7️⃣ Footer & Copyright\n\nReply with a number 1-7.`;
           nextStep = 'handle_branding_choice';
         } else if (text === '7') {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-          replyText = `🔗 *Here is your store link:*\n\n${appUrl}/store/${existingBusiness?.slug || ''}\n\nType *MENU* to go back.`;
+          const storeUrl = getStoreUrl(existingBusiness?.slug || '');
+          replyText = `🔗 *Here is your store link:*\n\n${storeUrl}\n\nType *MENU* to go back.`;
           nextStep = 'completed';
         } else {
           replyText = `Please reply with a number from 1 to 7.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding\n7️⃣ Get Store Link`;
