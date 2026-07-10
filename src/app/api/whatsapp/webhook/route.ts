@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription, generateProductImage } from '@/lib/gemini';
+import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription, generateProductImage, classifyUserIntent } from '@/lib/gemini';
 import { generateSlug, getStoreUrl } from '@/lib/utils';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
 import { TEMPLATES, getTemplateById } from '@/lib/templates';
@@ -241,11 +241,42 @@ export async function POST(req: NextRequest) {
       };
     };
 
-    switch (session.step) {
-      case 'start':
-        replyText = `🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please enter your store name:*`;
+    // AI Conversational Interceptor (Runs before switch for idle states)
+    const idleStates = ['start', 'main_menu', 'handle_menu_choice', 'completed'];
+    if (idleStates.includes(session.step) && text && !['1','2','3','4','5','6','7','MENU','RESET','SKIP'].includes(text.toUpperCase())) {
+      const aiResponse = await classifyUserIntent(text);
+      if (aiResponse.intent === 'create_store') {
+        collectedData.category = aiResponse.extractedData?.category || 'general';
+        replyText = `That's a great idea! Let's build your store right away. 🚀\n\n*Please enter your store name:*`;
         nextStep = 'collect_name';
-        break;
+      } else if (aiResponse.intent === 'get_link') {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+        const storeUrl = existingBusiness ? getStoreUrl(existingBusiness.slug) : null;
+        if (storeUrl) {
+           replyText = `🔗 *Here is your store link:*\n\n${storeUrl}\n\nType *MENU* to see more options.`;
+           nextStep = 'completed';
+        } else {
+           replyText = `You don't have a store yet! Let's build one.\n\n*Please enter your store name:*`;
+           nextStep = 'collect_name';
+        }
+      } else if (aiResponse.intent === 'menu') {
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
+        nextStep = 'handle_menu_choice';
+      } else {
+        // Only override if the AI gives a meaningful reply, otherwise let the standard flow handle it
+        if (aiResponse.replyText) {
+          replyText = aiResponse.replyText;
+          nextStep = session.step; // stay in idle state
+        }
+      }
+    }
+
+    if (!replyText) {
+      switch (session.step) {
+        case 'start':
+          replyText = `🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please enter your store name:*`;
+          nextStep = 'collect_name';
+          break;
 
       case 'main_menu':
         replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
@@ -1141,6 +1172,7 @@ export async function POST(req: NextRequest) {
         replyText = `I didn't understand that. Type *MENU* to start over.`;
         nextStep = 'start';
     }
+    } // End of switch wrapping block
 
     // Update session
     await prisma.whatsappSession.update({
