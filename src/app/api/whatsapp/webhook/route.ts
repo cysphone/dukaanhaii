@@ -167,10 +167,10 @@ export async function POST(req: NextRequest) {
         } else {
           session = await prisma.whatsappSession.update({
             where: { phoneNumber },
-            data: { step: 'collect_template', collectedData: {} },
+            data: { step: 'collect_name', collectedData: {} },
           });
           const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : `✅ Reset successful!\n\n`;
-          await sendWhatsAppMessage(phoneNumber, getTemplatePrompt(`${prefix}*Please choose a website template first:*`));
+          await sendWhatsAppMessage(phoneNumber, `${prefix}*Please enter your store name:*`);
           return NextResponse.json({ status: 'ok' });
         }
       }
@@ -190,9 +190,9 @@ export async function POST(req: NextRequest) {
         // User exists but has no store yet — continue with store creation
         session = await prisma.whatsappSession.update({
           where: { phoneNumber },
-          data: { step: 'collect_template', collectedData: {} }
+          data: { step: 'collect_name', collectedData: {} }
         });
-        await sendWhatsAppMessage(phoneNumber, getTemplatePrompt(`Welcome back! 👋 You don't have a store yet.\n\n*Please choose a website template:*`));
+        await sendWhatsAppMessage(phoneNumber, `Welcome back! 👋 You don't have a store yet.\n\n*Please enter your store name:*`);
         return NextResponse.json({ status: 'ok' });
       }
     }
@@ -250,8 +250,8 @@ export async function POST(req: NextRequest) {
 
     switch (session.step) {
       case 'start':
-        replyText = getTemplatePrompt(`🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please choose a website template:*`);
-        nextStep = 'collect_template';
+        replyText = `🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please enter your store name:*`;
+        nextStep = 'collect_name';
         break;
 
       case 'main_menu':
@@ -532,16 +532,14 @@ export async function POST(req: NextRequest) {
           break;
         }
         collectedData.name = text;
-        const cat = collectedData.category || 'general';
-        replyText = `Wow! *${text}* - that's a great name! 🎉\n\n${getContextualPrompts(cat).location}`;
-        nextStep = 'collect_location';
+        replyText = `Wow! *${text}* - that's a great name! 🎉\n\n*What do you sell?* (Enter Category)\n\nExamples: Groceries, Fashion, Food, Electronics, Handicrafts, etc.`;
+        nextStep = 'collect_category';
         break;
       }
 
       case 'collect_category':
-        // Legacy fallback
         collectedData.category = text;
-        replyText = `Perfect! ✅\n\n${getContextualPrompts('general').location}`;
+        replyText = `Perfect! ✅\n\n*Where do you operate from?* (City/Location, or type SKIP)`;
         nextStep = 'collect_location';
         break;
 
@@ -865,6 +863,20 @@ export async function POST(req: NextRequest) {
            if (footers[0]) collectedData.footerText = footers[0];
            if (footers[1]) collectedData.copyrightText = footers[1];
         }
+        replyText = getTemplatePrompt('✅ Store details saved!\n\n*Please choose a website template:*');
+        nextStep = 'collect_template';
+        break;
+      }
+
+      case 'collect_template': {
+        const idx = parseInt(text) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= TEMPLATES.length) {
+          collectedData.template = 'minimal';
+        } else {
+          const t = TEMPLATES[idx];
+          collectedData.template = t.id;
+        }
+
         replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your headline & description\n✅ Preparing your website\n\nPlease wait a moment! ⏳`;
         nextStep = 'creating';
 
@@ -893,21 +905,6 @@ export async function POST(req: NextRequest) {
             data: { step: 'start', collectedData: {} },
           });
         });
-        break;
-      }
-      case 'collect_template': {
-        const idx = parseInt(text) - 1;
-        if (isNaN(idx) || idx < 0 || idx >= TEMPLATES.length) {
-          collectedData.template = 'minimal';
-          collectedData.category = 'general';
-          replyText = `⚠️ Invalid selection. We've set your template to *Minimal* for now (you can change it later).\n\n${getContextualPrompts('general').name}`;
-        } else {
-          const t = TEMPLATES[idx];
-          collectedData.template = t.id;
-          collectedData.category = t.category;
-          replyText = `✅ Excellent choice! You selected *${t.name}*.\n\n${getContextualPrompts(t.category).name}`;
-        }
-        nextStep = 'collect_name';
         break;
       }
 
