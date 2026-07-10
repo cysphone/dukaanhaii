@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
             where: { phoneNumber },
             data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } },
           });
-          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
           const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : (msgUpper === 'MENU' || msgUpper === 'RESET' ? `✅ Menu returned!\n\n` : '');
           await sendWhatsAppMessage(phoneNumber, `${prefix}${replyText}`);
           return NextResponse.json({ status: 'ok' });
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
           where: { phoneNumber },
           data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } }
         });
-        const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+        const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
         await sendWhatsAppMessage(phoneNumber, replyText);
         return NextResponse.json({ status: 'ok' });
       } else if (existingUser) {
@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'main_menu':
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
         nextStep = 'handle_menu_choice';
         break;
 
@@ -289,8 +289,15 @@ export async function POST(req: NextRequest) {
         } else if (text === '5') {
           replyText = getTemplatePrompt('🎨 *Select a new template for your website:*');
           nextStep = 'save_website_template';
+        } else if (text === '6') {
+          replyText = `🎨 *What branding detail would you like to edit?*\n\n1️⃣ About Us\n2️⃣ Brand Logo\n3️⃣ Favicon\n4️⃣ Brand Colors\n5️⃣ Social Links\n6️⃣ Contact Info\n7️⃣ Footer & Copyright\n\nReply with a number 1-7.`;
+          nextStep = 'handle_branding_choice';
+        } else if (text === '7') {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+          replyText = `🔗 *Here is your store link:*\n\n${appUrl}/store/${existingBusiness?.slug || ''}\n\nType *MENU* to go back.`;
+          nextStep = 'completed';
         } else {
-          replyText = `Please reply with 1, 2, 3, 4, or 5.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template`;
+          replyText = `Please reply with a number from 1 to 7.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding\n7️⃣ Get Store Link`;
           nextStep = 'handle_menu_choice';
         }
         break;
