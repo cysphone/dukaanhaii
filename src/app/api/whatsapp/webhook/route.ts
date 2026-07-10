@@ -287,7 +287,7 @@ export async function POST(req: NextRequest) {
           replyText = `You can only create and manage one site via WhatsApp.\n\nTo create a new site, please log in to the website:\n${appUrl}/login\n\nType *MENU* to go back to the menu.`;
           nextStep = 'handle_menu_choice';
         } else if (text === '5') {
-          replyText = `🎨 *Select a new template for your website:*\n\n1️⃣ *Minimal* — Clean & Elegant\n2️⃣ *Bold* — Vibrant & Energetic\n3️⃣ *Catalog* — Mobile Optimized\n4️⃣ *Elegant* — Luxurious & Refined\n5️⃣ *Futuristic* — Modern & Tech-Savvy\n6️⃣ *Playful* — Fun & Colorful\n\nReply with 1, 2, 3, 4, 5, or 6`;
+          replyText = getTemplatePrompt('🎨 *Select a new template for your website:*');
           nextStep = 'save_website_template';
         } else {
           replyText = `Please reply with 1, 2, 3, 4, or 5.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template`;
@@ -430,16 +430,17 @@ export async function POST(req: NextRequest) {
       }
 
       case 'save_website_template': {
-        const templates: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog', '4': 'elegant', '5': 'futuristic', '6': 'playful' };
-        if (templates[text]) {
+        const idx = parseInt(text) - 1;
+        if (!isNaN(idx) && idx >= 0 && idx < TEMPLATES.length) {
+          const t = TEMPLATES[idx];
           await prisma.business.update({
             where: { id: collectedData.businessId },
-            data: { templateType: templates[text] }
+            data: { templateType: t.id }
           });
-          replyText = `✅ Website template successfully updated to *${templates[text]}*!\n\nType *MENU* to return to the main menu.`;
+          replyText = `✅ Website template successfully updated to *${t.name}*!\n\nType *MENU* to return to the main menu.`;
           nextStep = 'completed';
         } else {
-          replyText = `Please reply with 1, 2, 3, 4, 5, or 6.`;
+          replyText = `Please reply with a number from 1 to ${TEMPLATES.length}.`;
           nextStep = 'save_website_template';
         }
         break;
