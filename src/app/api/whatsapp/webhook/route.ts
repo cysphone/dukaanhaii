@@ -238,12 +238,12 @@ export async function POST(req: NextRequest) {
       if (platformSettings.aiEnabled && platformSettings.aiDescGen) {
         return {
           replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n🤖 Would you like AI to generate an SEO-friendly description for you?\n\n1️⃣ *Yes, generate AI description*\n2️⃣ *No, I'll write my own*\n\nReply with 1 or 2.`,
-          nextStep: 'ask_ai_desc'
+          nextStep: 'ask_desc_ai'
         };
       } else {
         return {
           replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n${getContextualPrompts(cat).description}`,
-          nextStep: 'collect_desc'
+          nextStep: 'collect_description'
         };
       }
     };
