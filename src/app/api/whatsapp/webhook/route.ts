@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
         if (existingBusiness) {
           session = await prisma.whatsappSession.update({
             where: { phoneNumber },
-            data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } },
+            data: { step: 'handle_menu_choice', collectedData: { businessId: existingBusiness.id } },
           });
           const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
           const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : (msgUpper === 'MENU' || msgUpper === 'RESET' ? `✅ Menu returned!\n\n` : '');
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
         } else {
           session = await prisma.whatsappSession.update({
             where: { phoneNumber },
-            data: { step: 'start', collectedData: {} },
+            data: { step: 'collect_template', collectedData: {} },
           });
           const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : `✅ Reset successful!\n\n`;
           await sendWhatsAppMessage(phoneNumber, getTemplatePrompt(`${prefix}*Please choose a website template first:*`));
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
       if (existingBusiness) {
         session = await prisma.whatsappSession.update({
           where: { phoneNumber },
-          data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } }
+          data: { step: 'handle_menu_choice', collectedData: { businessId: existingBusiness.id } }
         });
         const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
         await sendWhatsAppMessage(phoneNumber, replyText);
