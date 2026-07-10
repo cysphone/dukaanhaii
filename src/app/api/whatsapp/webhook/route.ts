@@ -235,17 +235,10 @@ export async function POST(req: NextRequest) {
     };
 
     const getDescPrompt = (prefix: string, cat: string) => {
-      if (platformSettings.aiEnabled && platformSettings.aiDescGen) {
-        return {
-          replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n🤖 Would you like AI to generate an SEO-friendly description for you?\n\n1️⃣ *Yes, generate AI description*\n2️⃣ *No, I'll write my own*\n\nReply with 1 or 2.`,
-          nextStep: 'ask_desc_ai'
-        };
-      } else {
-        return {
-          replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n${getContextualPrompts(cat).description}`,
-          nextStep: 'collect_description'
-        };
-      }
+      return {
+        replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n${getContextualPrompts(cat).description}`,
+        nextStep: 'collect_description'
+      };
     };
 
     switch (session.step) {
@@ -556,11 +549,8 @@ export async function POST(req: NextRequest) {
       case 'collect_description':
         collectedData.description = text;
         collectedData.whatsapp = phoneNumber;
-        // AI credits per field (2 each, independent)
-        collectedData.aiCredits = { headline: AI_MAX_CREDITS, desc: AI_MAX_CREDITS };
-        collectedData.aiGenerations = { headline: [], desc: [] };
-        replyText = `Great! 🎉\n\nNow let's set up your *Store Headline* (the big text visitors see on your homepage).\n\n🤖 Would you like AI to generate an SEO-friendly headline for you?\n\n1️⃣ *Yes, generate AI headline*\n2️⃣ *No, I'll write my own*\n\nReply with 1 or 2.`;
-        nextStep = 'ask_headline_ai';
+        replyText = getTemplatePrompt('✅ Description saved!\n\n*Please choose a website template:*');
+        nextStep = 'collect_template';
         break;
 
       // ─────────────── HEADLINE AI FLOW ───────────────
