@@ -4,6 +4,40 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
+// OpenAI Fallback Helper
+async function fallbackToGPT(prompt: string, expectJson: boolean = false): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OPENAI_API_KEY not found');
+
+  const messages = [{ role: 'user', content: prompt }];
+  
+  const payload: any = {
+    model: 'gpt-4o-mini',
+    messages,
+    temperature: 0.7,
+  };
+  
+  if (expectJson) {
+    payload.response_format = { type: 'json_object' };
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API Error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 export async function generateBusinessContent(business: {
   name: string;
   description: string;
@@ -36,15 +70,23 @@ Keep the tone warm, local, and authentic. Use simple English that works for Indi
     if (!jsonMatch) throw new Error('No JSON found in response');
     return JSON.parse(jsonMatch[0]);
   } catch (error) {
-    console.error('Gemini content generation error:', error);
-    return {
-      headline: `Welcome to ${business.name} - Your Trusted Local Store`,
-      tagline: 'Quality you can trust, service you deserve',
-      about: `${business.name} is a proud local business in ${business.location}. We are dedicated to serving our community with the best ${business.category} products and services. Our commitment to quality and customer satisfaction sets us apart.`,
-      vision: `To be the most trusted and preferred choice for ${business.category} in ${business.location}.`,
-      mission: `To provide high-quality ${business.category} products and exceptional service that delights our customers every day.`,
-      marketingDesc: `Discover ${business.name} - your go-to destination for ${business.category} in ${business.location}. We bring you quality products at great prices.`,
-    };
+    console.warn('Gemini content generation failed, attempting OpenAI fallback...', error);
+    try {
+      const gptText = await fallbackToGPT(prompt, true);
+      const jsonMatch = gptText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON found in GPT response');
+      return JSON.parse(jsonMatch[0]);
+    } catch (gptError) {
+      console.error('Both AI models failed (Business Content):', gptError);
+      return {
+        headline: `Welcome to ${business.name} - Your Trusted Local Store`,
+        tagline: 'Quality you can trust, service you deserve',
+        about: `${business.name} is a proud local business in ${business.location}. We are dedicated to serving our community with the best ${business.category} products and services. Our commitment to quality and customer satisfaction sets us apart.`,
+        vision: `To be the most trusted and preferred choice for ${business.category} in ${business.location}.`,
+        mission: `To provide high-quality ${business.category} products and exceptional service that delights our customers every day.`,
+        marketingDesc: `Discover ${business.name} - your go-to destination for ${business.category} in ${business.location}. We bring you quality products at great prices.`,
+      };
+    }
   }
 }
 
@@ -69,8 +111,14 @@ Return ONLY the headline text. No quotes, no punctuation at the end, no explanat
     const result = await model.generateContent(prompt);
     return result.response.text().trim().replace(/^["']|["']$/g, '');
   } catch (error) {
-    console.error('Gemini headline error:', error);
-    return `Welcome to ${business.name} - Your Trusted ${business.category} Store`;
+    console.warn('Gemini headline failed, attempting OpenAI fallback...', error);
+    try {
+      const gptText = await fallbackToGPT(prompt, false);
+      return gptText.trim().replace(/^["']|["']$/g, '');
+    } catch (gptError) {
+      console.error('Both AI models failed (Headline):', gptError);
+      return `Welcome to ${business.name} - Your Trusted ${business.category} Store`;
+    }
   }
 }
 
@@ -100,8 +148,14 @@ Return ONLY the description text. No extra commentary.`;
     const result = await model.generateContent(prompt);
     return result.response.text().trim();
   } catch (error) {
-    console.error('Gemini description error:', error);
-    return `${business.name} is your go-to destination for ${business.category} in ${business.location}. We are committed to quality, great service, and making every customer feel at home.`;
+    console.warn('Gemini description failed, attempting OpenAI fallback...', error);
+    try {
+      const gptText = await fallbackToGPT(prompt, false);
+      return gptText.trim();
+    } catch (gptError) {
+      console.error('Both AI models failed (Description):', gptError);
+      return `${business.name} is your go-to destination for ${business.category} in ${business.location}. We are committed to quality, great service, and making every customer feel at home.`;
+    }
   }
 }
 
@@ -130,8 +184,14 @@ Write 2-3 sentences that highlight the product's appeal, quality, and value. Kee
     const result = await model.generateContent(prompt);
     return result.response.text().trim();
   } catch (error) {
-    console.error('Gemini product description error:', error);
-    return `Premium quality ${product.name} available at ${product.businessName}. Get the best value at just ₹${product.price}.`;
+    console.warn('Gemini product description failed, attempting OpenAI fallback...', error);
+    try {
+      const gptText = await fallbackToGPT(prompt, false);
+      return gptText.trim();
+    } catch (gptError) {
+      console.error('Both AI models failed (Product Description):', gptError);
+      return `Premium quality ${product.name} available at ${product.businessName}. Get the best value at just ₹${product.price}.`;
+    }
   }
 }
 

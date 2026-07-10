@@ -1,6 +1,8 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { ShoppingCart, ArrowUpRight, Camera, MessageCircle, Globe, MapPin, Phone, Mail } from 'lucide-react';
 
 interface TemplateProps {
   business: {
@@ -49,36 +51,40 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
         : `Hi! I'm interested in ${business.name}.`
     )}`;
 
+  const brandColor = business.primaryColor || '#fb923c'; // orange-400
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white selection:bg-orange-500 selection:text-white">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
-        .bold-display { font-family: 'Bebas Neue', cursive; letter-spacing: 0.02em; }
+        .bold-display { font-family: 'Bebas Neue', cursive; letter-spacing: 0.03em; }
         .bold-body { font-family: 'DM Sans', sans-serif; }
       `}</style>
 
       {/* Header */}
-      <header className="border-b border-zinc-800 sticky top-0 bg-zinc-950/90 backdrop-blur-md z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-8 bg-orange-500 rounded-full" />
-            <h1 className="bold-display text-3xl text-white">{business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}</h1>
-          </div>
+      <header className="border-b-2 border-zinc-900 sticky top-0 bg-zinc-950/80 backdrop-blur-xl z-50">
+        <div className="max-w-[1400px] mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {business.location && (
-              <span className="bold-body text-zinc-400 text-sm hidden md:block">📍 {business.location}</span>
-            )}
+            <div className="w-3 h-10 rounded-sm" style={{ backgroundColor: brandColor }} />
+            <h1 className="bold-display text-4xl text-white tracking-widest mt-1">
+              {business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}
+            </h1>
+          </div>
+          <div className="flex items-center gap-8">
+            <nav className="hidden lg:flex gap-8 bold-display text-2xl tracking-widest text-zinc-500">
+              {products.length > 0 && <a href="#products" className="hover:text-white transition-colors">Products</a>}
+              {business.about && <a href="#story" className="hover:text-white transition-colors">Story</a>}
+            </nav>
             {waNumber && (
               <a
-                href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }}
+                href={waLink()} 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bold-body flex items-center gap-2 bg-orange-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-orange-400 transition-all"
+                className="bold-display flex items-center gap-3 text-zinc-950 text-2xl px-6 py-2 rounded-none hover:scale-105 active:scale-95 transition-transform"
+                style={{ backgroundColor: brandColor }}
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                WhatsApp Us
+                <ShoppingCart className="w-5 h-5 mb-0.5" />
+                {business.ctaText || 'ORDER NOW'}
               </a>
             )}
           </div>
@@ -86,120 +92,206 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
       </header>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 py-24 relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-        {business.tagline && (
-          <div className="bold-body inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-semibold px-4 py-2 rounded-full uppercase tracking-widest mb-6">
-            ⚡ {business.tagline}
+      <section className="max-w-[1400px] mx-auto px-6 py-20 lg:py-32 relative overflow-hidden">
+        {/* Abstract background shapes */}
+        <div className="absolute top-20 right-10 w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ backgroundColor: brandColor }} />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="relative z-10"
+        >
+          {business.tagline && (
+            <div className="bold-display inline-flex items-center gap-3 text-2xl px-5 py-2 rounded-sm uppercase tracking-widest mb-8 border-2 border-zinc-800" style={{ color: brandColor }}>
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
+              {business.tagline}
+            </div>
+          )}
+          
+          <h2 className="bold-display text-7xl sm:text-8xl md:text-[8rem] lg:text-[10rem] text-white leading-[0.85] mb-8 max-w-5xl uppercase mix-blend-difference">
+            {business.headline || business.name}
+          </h2>
+          
+          <div className="flex flex-wrap items-center gap-4 sm:gap-8 mt-12 border-t-2 border-zinc-900 pt-8">
+            {business.category && (
+               <div className="flex flex-col">
+                 <span className="bold-body text-xs text-zinc-500 uppercase tracking-widest font-bold">Category</span>
+                 <span className="bold-display text-3xl">{business.category}</span>
+               </div>
+            )}
+            {business.category && <div className="w-2 h-2 bg-zinc-800 rotate-45" />}
+            <div className="flex flex-col">
+              <span className="bold-body text-xs text-zinc-500 uppercase tracking-widest font-bold">Inventory</span>
+              <span className="bold-display text-3xl">{products.length} ITEMS</span>
+            </div>
+            {business.location && <div className="w-2 h-2 bg-zinc-800 rotate-45" />}
+            {business.location && (
+               <div className="flex flex-col">
+                 <span className="bold-body text-xs text-zinc-500 uppercase tracking-widest font-bold">Location</span>
+                 <span className="bold-display text-3xl">{business.location}</span>
+               </div>
+            )}
           </div>
+        </motion.div>
+        
+        {business.bannerUrl && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="mt-20 w-full aspect-[21/9] rounded-sm overflow-hidden relative border-2 border-zinc-800"
+          >
+            <img src={business.bannerUrl} alt="Hero Banner" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60" />
+          </motion.div>
         )}
-        <h2 className="bold-display text-6xl md:text-8xl text-white leading-none mb-8 max-w-3xl">
-          {business.headline || business.name}
-        </h2>
-        <div className="flex items-center gap-6">
-          <span className="bold-body text-zinc-400">{business.category}</span>
-          <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-          <span className="bold-body text-zinc-400">{products.length} Products</span>
-        </div>
       </section>
+
+      {/* Scrolling Marquee (Optional design element) */}
+      <div className="w-full overflow-hidden bg-zinc-900 py-4 border-y-2 border-zinc-800 flex whitespace-nowrap">
+         <div className="bold-display text-4xl text-zinc-600 tracking-widest flex items-center gap-8 animate-[spin_10s_linear_infinite] [animation:scroll_20s_linear_infinite]">
+            <style>{`@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
+            {[...Array(10)].map((_, i) => (
+              <span key={i} className="flex items-center gap-8">
+                {business.name} <span style={{ color: brandColor }}>✦</span>
+              </span>
+            ))}
+         </div>
+      </div>
 
       {/* Products */}
       {products.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 pb-24">
-          <div className="flex items-end justify-between mb-10">
-            <h3 className="bold-display text-5xl text-white">Products</h3>
-            <div className="w-32 h-0.5 bg-orange-500 mb-2" />
+        <section id="products" className="max-w-[1400px] mx-auto px-6 py-32">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 gap-6">
+            <div>
+              <h3 className="bold-display text-6xl md:text-8xl text-white leading-none">THE DROPS.</h3>
+              <div className="w-32 h-2 mt-4" style={{ backgroundColor: brandColor }} />
+            </div>
+            {business.marketingDesc && (
+              <p className="bold-body text-zinc-400 max-w-sm text-lg font-medium border-l-2 border-zinc-800 pl-4">
+                {business.marketingDesc}
+              </p>
+            )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {products.map((product, i) => (
-              <div key={product.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden group hover:border-orange-500/50 transition-all duration-300">
-                <div className="aspect-square relative overflow-hidden bg-zinc-800">
+              <motion.div 
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                key={product.id} 
+                className="group flex flex-col bg-zinc-900 border-2 border-zinc-800 hover:border-zinc-600 transition-colors duration-300"
+              >
+                <div className="aspect-[4/5] relative overflow-hidden bg-zinc-950 p-4">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-5xl">📦</span>
+                    <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-zinc-800 text-zinc-800 group-hover:text-zinc-600 group-hover:border-zinc-600 transition-colors">
+                      <ShoppingCart className="w-16 h-16" />
                     </div>
                   )}
-                  <div className="absolute top-4 left-4">
-                    <span className="bold-display text-6xl text-white/10">{String(i + 1).padStart(2, '0')}</span>
+                  <div className="absolute top-6 left-6 bg-zinc-950 text-white bold-display text-4xl px-4 py-2 border-2 border-zinc-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    {String(i + 1).padStart(2, '0')}
                   </div>
+                  {!product.inStock && (
+                     <div className="absolute top-6 right-6 bg-red-600 text-white bold-display text-2xl px-4 py-1 rotate-3">
+                       SOLD OUT
+                     </div>
+                  )}
                 </div>
 
-                <div className="p-6">
-                  <h4 className="bold-display text-2xl text-white mb-2">{product.name}</h4>
-                  {product.description && (
-                    <p className="bold-body text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-2">{product.description}</p>
+                <div className="p-6 md:p-8 flex-grow flex flex-col">
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <h4 className="bold-display text-4xl text-white uppercase leading-none">{product.name}</h4>
+                  </div>
+                  
+                  {product.category && (
+                    <span className="bold-body text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 block">
+                      // {product.category}
+                    </span>
                   )}
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="bold-display text-2xl text-orange-400">{formatPrice(product.price)}</span>
+
+                  {product.description && (
+                    <p className="bold-body text-zinc-400 text-base leading-relaxed mb-8 flex-grow line-clamp-3">{product.description}</p>
+                  )}
+                  
+                  <div className="flex items-center justify-between mt-auto pt-6 border-t-2 border-zinc-800">
+                    <span className="bold-display text-4xl" style={{ color: brandColor }}>{formatPrice(product.price)}</span>
                     <a
                       href={getProductUrl(business.slug, product.id)}
-                      className="bold-body bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all"
+                      className="bold-display text-2xl text-zinc-950 px-6 py-2 bg-white hover:bg-zinc-200 transition-colors flex items-center gap-2"
                     >
-                      View Details
+                      VIEW <ArrowUpRight className="w-5 h-5 mb-1" />
                     </a>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
       )}
 
-      {/* About & Mission/Vision */}
+      {/* About / Story Section */}
       {(business.about || business.mission || business.vision) && (
-        <section className="border-t border-zinc-800 py-20 bg-zinc-950">
-          <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-start">
-            <div className="space-y-12">
+        <section id="story" className="border-t-2 border-zinc-900 bg-zinc-950 relative overflow-hidden">
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full blur-[150px] opacity-10 pointer-events-none" style={{ backgroundColor: brandColor }} />
+          
+          <div className="max-w-[1400px] mx-auto px-6 py-32 grid lg:grid-cols-12 gap-16 lg:gap-8 relative z-10">
+            <div className="lg:col-span-5">
+              <h3 className="bold-display text-7xl md:text-8xl text-white mb-8">THE STORY.</h3>
               {business.about && (
-                <div>
-                  <h3 className="bold-display text-5xl text-white mb-6">Our Story</h3>
-                  <p className="bold-body text-zinc-300 leading-relaxed text-lg">{business.about}</p>
-                </div>
+                <p className="bold-body text-zinc-300 leading-relaxed text-xl mb-12">{business.about}</p>
               )}
-              {business.mission && (
-                <div>
-                  <h3 className="bold-display text-4xl text-orange-400 mb-4">The Mission</h3>
-                  <p className="bold-body text-zinc-400 leading-relaxed">{business.mission}</p>
-                </div>
-              )}
-              {business.vision && (
-                <div>
-                  <h3 className="bold-display text-4xl text-orange-400 mb-4">The Vision</h3>
-                  <p className="bold-body text-zinc-400 leading-relaxed">{business.vision}</p>
-                </div>
-              )}
+              
+              <div className="grid grid-cols-2 gap-8 border-t-2 border-zinc-900 pt-8">
+                {business.location && (
+                  <div>
+                    <span className="bold-body text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">Location</span>
+                    <span className="bold-display text-3xl">{business.location}</span>
+                  </div>
+                )}
+                {business.category && (
+                  <div>
+                    <span className="bold-body text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">Focus</span>
+                    <span className="bold-display text-3xl">{business.category}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="sticky top-32">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 mb-8">
-                <h4 className="bold-display text-3xl text-white mb-6">Quick Overview</h4>
-                <div className="space-y-4">
-                  {[
-                    { label: 'Business', value: business.name },
-                    { label: 'Category', value: business.category },
-                    { label: 'Location', value: business.location },
-                    { label: 'Products', value: `${products.length} items` },
-                  ].filter(i => i.value).map(item => (
-                    <div key={item.label} className="flex items-center justify-between border-b border-zinc-800 pb-4 last:border-0 last:pb-0">
-                      <span className="bold-body text-zinc-500 text-sm">{item.label}</span>
-                      <span className="bold-body text-white font-medium">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {business.marketingDesc && (
-                <div className="bg-orange-500/10 border border-orange-500/20 rounded-3xl p-8">
-                  <p className="bold-body text-orange-400 text-lg italic tracking-wide text-center">
-                    "{business.marketingDesc}"
-                  </p>
-                </div>
+            <div className="lg:col-span-6 lg:col-start-7 space-y-12">
+              {business.mission && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-zinc-900 p-8 md:p-12 border-2 border-zinc-800 border-l-8 hover:border-zinc-700 transition-colors"
+                  style={{ borderLeftColor: brandColor }}
+                >
+                  <h4 className="bold-display text-5xl mb-6">THE MISSION.</h4>
+                  <p className="bold-body text-zinc-400 text-lg leading-relaxed">{business.mission}</p>
+                </motion.div>
+              )}
+              
+              {business.vision && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-zinc-900 p-8 md:p-12 border-2 border-zinc-800 border-l-8 hover:border-zinc-700 transition-colors"
+                  style={{ borderLeftColor: brandColor }}
+                >
+                  <h4 className="bold-display text-5xl mb-6">THE VISION.</h4>
+                  <p className="bold-body text-zinc-400 text-lg leading-relaxed">{business.vision}</p>
+                </motion.div>
               )}
             </div>
           </div>
@@ -207,20 +299,66 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
+      <footer className="border-t-2 border-zinc-900 bg-zinc-950">
+        <div className="max-w-[1400px] mx-auto px-6 py-20 grid md:grid-cols-2 lg:grid-cols-4 gap-16">
+          <div className="lg:col-span-2">
+            <h2 className="bold-display text-6xl mb-6 text-white">{business.name}</h2>
+            <p className="bold-body text-zinc-400 max-w-md text-lg mb-8">
+              {business.footerText || "Pushing boundaries and redefining the standard. Join the movement."}
+            </p>
+            <div className="flex gap-4">
+              {business.instagramUrl && (
+                <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="w-14 h-14 bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors">
+                  <Camera className="w-6 h-6" />
+                </a>
+              )}
+              {business.facebookUrl && (
+                <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="w-14 h-14 bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors">
+                  <MessageCircle className="w-6 h-6" />
+                </a>
+              )}
+              {business.websiteUrl && (
+                <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="w-14 h-14 bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors">
+                  <Globe className="w-6 h-6" />
+                </a>
+              )}
+            </div>
+          </div>
 
-        <div className="flex flex-wrap gap-4 items-center justify-center mt-4 mb-4 w-full">
-          {business.instagramUrl && <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Instagram</a>}
-          {business.facebookUrl && <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Facebook</a>}
-          {business.websiteUrl && <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Website</a>}
-          {business.email && <a href={`mailto:${business.email}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Email</a>}
-          {business.phoneNumber && <a href={`tel:${business.phoneNumber}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Call Us</a>}
+          <div>
+            <h4 className="bold-display text-3xl mb-8 tracking-widest text-zinc-500">CONTACT</h4>
+            <ul className="space-y-6 bold-body text-lg text-white font-medium">
+              {business.email && (
+                <li>
+                  <a href={`mailto:${business.email}`} className="flex items-center gap-4 hover:opacity-70 transition-opacity">
+                    <Mail className="w-5 h-5 text-zinc-500" /> {business.email}
+                  </a>
+                </li>
+              )}
+              {business.phoneNumber && (
+                <li>
+                  <a href={`tel:${business.phoneNumber}`} className="flex items-center gap-4 hover:opacity-70 transition-opacity">
+                    <Phone className="w-5 h-5 text-zinc-500" /> {business.phoneNumber}
+                  </a>
+                </li>
+              )}
+              {business.location && (
+                <li className="flex items-start gap-4">
+                  <MapPin className="w-5 h-5 text-zinc-500 shrink-0 mt-1" /> {business.location}
+                </li>
+              )}
+            </ul>
+          </div>
         </div>
 
-        <p className="bold-body text-zinc-500 text-sm">{business.name} © {new Date().getFullYear()}</p>
-        <a href="/" className="bold-body text-zinc-600 hover:text-zinc-400 text-xs transition-colors">
-          Made with DukaanHai
-        </a>
+        <div className="border-t-2 border-zinc-900">
+          <div className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-6 bold-display text-2xl tracking-widest text-zinc-600">
+            <p>{business.copyrightText || `© ${new Date().getFullYear()} ${business.name}. ALL RIGHTS RESERVED.`}</p>
+            <p>
+              POWERED BY <a href="/" className="text-white hover:underline ml-2">DUKAANHAI</a>
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );

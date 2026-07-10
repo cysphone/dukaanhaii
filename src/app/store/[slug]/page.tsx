@@ -18,6 +18,9 @@ import HotelLuxuryTemplate from '@/components/templates/HotelLuxuryTemplate';
 import HotelResortTemplate from '@/components/templates/HotelResortTemplate';
 import MinimalTemplate from '@/components/templates/MinimalTemplate';
 import PlayfulTemplate from '@/components/templates/PlayfulTemplate';
+import ServiceModernTemplate from '@/components/templates/ServiceModernTemplate';
+import PortfolioCreativeTemplate from '@/components/templates/PortfolioCreativeTemplate';
+import LandingMinimalTemplate from '@/components/templates/LandingMinimalTemplate';
 
 interface StorePageProps {
   params: { slug: string };
@@ -98,6 +101,12 @@ export default async function StorePage({ params, searchParams }: StorePageProps
       return <HotelResortTemplate {...props} />;
     case 'playful':
       return <PlayfulTemplate {...props} />;
+    case 'service-modern':
+      return <ServiceModernTemplate {...props} />;
+    case 'portfolio-creative':
+      return <PortfolioCreativeTemplate {...props} />;
+    case 'landing-minimal':
+      return <LandingMinimalTemplate {...props} />;
     default:
       return <MinimalTemplate {...props} />;
   }

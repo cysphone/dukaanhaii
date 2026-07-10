@@ -1,4 +1,4 @@
-export type TemplateCategory = 'general' | 'gym' | 'hotel' | 'ecommerce';
+export type TemplateCategory = 'general' | 'gym' | 'hotel' | 'ecommerce' | 'service';
 export type TemplateSubcategory = 'clothing' | 'electronics' | 'grocery' | 'none';
 
 export interface TemplateDef {
@@ -17,6 +17,7 @@ export const TEMPLATE_CATEGORIES = [
     { id: 'ecommerce', name: 'E-Commerce' },
     { id: 'gym', name: 'Gym & Fitness' },
     { id: 'hotel', name: 'Hotels & Hospitality' },
+    { id: 'service', name: 'Services & Portfolio' },
 ];
 
 export const ECOMMERCE_SUBCATEGORIES = [
@@ -51,6 +52,11 @@ export const TEMPLATES: TemplateDef[] = [
     { id: 'ecommerce-tech-cyber', name: 'Gamer Edge', desc: 'Glowing borders, dark mode, gaming-focused.', colors: ['#09090b', '#8b5cf6', '#a78bfa'], tag: 'Gaming', preview: '🎮', category: 'ecommerce', subcategory: 'electronics' },
     { id: 'ecommerce-food-fresh', name: 'Fresh Market', desc: 'Green/orange colors, rounded shapes, grid focus for produce.', colors: ['#fdf8f6', '#ea580c', '#fdba74'], tag: 'Organic', preview: '🥗', category: 'ecommerce', subcategory: 'grocery' },
     { id: 'ecommerce-food-menu', name: 'Digital Menu', desc: 'List-based like a restaurant menu or catalog.', colors: ['#fff1f2', '#e11d48', '#fb7185'], tag: 'Menu', preview: '🍔', category: 'ecommerce', subcategory: 'grocery' },
+
+    // Services & Portfolio
+    { id: 'service-modern', name: 'Modern Agency', desc: 'Sleek, professional design for agencies and service businesses. Focus on services and mission.', colors: ['#0f172a', '#f8fafc', '#3b82f6'], tag: 'Service', preview: '💼', category: 'service' },
+    { id: 'portfolio-creative', name: 'Creative Studio', desc: 'Bold typography, big images, designed for creative agencies and portfolios.', colors: ['#000000', '#ffffff', '#a3e635'], tag: 'Creative', preview: '🎨', category: 'service' },
+    { id: 'landing-minimal', name: 'Minimal Landing', desc: 'Clean, one-page lead generation site without products.', colors: ['#0f172a', '#ffffff', '#e2e8f0'], tag: 'Simple', preview: '📄', category: 'service' },
 ];
 
 export function getTemplateById(id: string): TemplateDef | undefined {

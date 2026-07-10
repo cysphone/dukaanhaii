@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription, generateProductImage } from '@/lib/gemini';
 import { generateSlug, getStoreUrl } from '@/lib/utils';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
-
+import { TEMPLATES, getTemplateById } from '@/lib/templates';
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!;
 const WA_TOKEN = process.env.WHATSAPP_TOKEN!;
 const PHONE_ID = process.env.WHATSAPP_PHONE_ID!;
@@ -28,7 +28,12 @@ export async function GET(req: NextRequest) {
 
 const getTemplatePrompt = (title: string) => {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-  return `${title}\n\n1️⃣ *Minimal* — Clean & Elegant (Preview: ${appUrl}/store/demo?template=minimal)\n2️⃣ *Bold* — Vibrant & Energetic (Preview: ${appUrl}/store/demo?template=bold)\n3️⃣ *Catalog* — Mobile Optimized (Preview: ${appUrl}/store/demo?template=catalog)\n4️⃣ *Elegant* — Luxurious & Refined (Preview: ${appUrl}/store/demo?template=elegant)\n5️⃣ *Futuristic* — Modern & Tech-Savvy (Preview: ${appUrl}/store/demo?template=futuristic)\n6️⃣ *Playful* — Fun & Colorful (Preview: ${appUrl}/store/demo?template=playful)\n\nReply with 1, 2, 3, 4, 5, or 6`;
+  let message = `${title}\n\n`;
+  TEMPLATES.forEach((t, i) => {
+    message += `*${i + 1}.* ${t.preview} *${t.name}* — ${t.tag} (Preview: ${appUrl}/store/demo?template=${t.id})\n`;
+  });
+  message += `\nReply with a number from 1 to ${TEMPLATES.length}.`;
+  return message;
 };
 
 
@@ -165,7 +170,7 @@ export async function POST(req: NextRequest) {
             data: { step: 'start', collectedData: {} },
           });
           const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : `✅ Reset successful!\n\n`;
-          await sendWhatsAppMessage(phoneNumber, `${prefix}*Please enter your new store name:*`);
+          await sendWhatsAppMessage(phoneNumber, getTemplatePrompt(`${prefix}*Please choose a website template first:*`));
           return NextResponse.json({ status: 'ok' });
         }
       }
@@ -185,9 +190,9 @@ export async function POST(req: NextRequest) {
         // User exists but has no store yet — continue with store creation
         session = await prisma.whatsappSession.update({
           where: { phoneNumber },
-          data: { step: 'collect_name', collectedData: {} }
+          data: { step: 'collect_template', collectedData: {} }
         });
-        await sendWhatsAppMessage(phoneNumber, `Welcome back! 👋 You don't have a store yet.\n\n*Please enter your store name:*`);
+        await sendWhatsAppMessage(phoneNumber, getTemplatePrompt(`Welcome back! 👋 You don't have a store yet.\n\n*Please choose a website template:*`));
         return NextResponse.json({ status: 'ok' });
       }
     }
@@ -198,15 +203,46 @@ export async function POST(req: NextRequest) {
     let nextStep = session.step;
 
 
-    const getDescPrompt = (prefix: string) => {
+    const getContextualPrompts = (category: string) => {
+      switch (category) {
+        case 'gym':
+          return {
+            name: '*What is the name of your gym or fitness center?*',
+            location: '*Where is your gym located?* (City or Address, or type Skip)',
+            description: '*Tell us about your fitness programs, facilities, and mission...*'
+          };
+        case 'hotel':
+          return {
+            name: '*What is the name of your hotel, resort, or property?*',
+            location: '*Where is your property located?* (or type Skip)',
+            description: '*Tell us about your rooms, amenities, and guest experience...*'
+          };
+        case 'service':
+          return {
+            name: '*What is the name of your agency or service?*',
+            location: '*Where are your services based?* (or type Skip)',
+            description: '*Tell us about the services you offer and your expertise...*'
+          };
+        case 'ecommerce':
+        case 'general':
+        default:
+          return {
+            name: '*What is the name of your store?*',
+            location: '*Where is your store based?* (Optional: type Skip)',
+            description: '*Please enter a brief description of what you sell:*'
+          };
+      }
+    };
+
+    const getDescPrompt = (prefix: string, cat: string) => {
       if (platformSettings.aiEnabled && platformSettings.aiDescGen) {
         return {
-          replyText: `${prefix}\n\nNow let's set up your *Store Description.*\n\n🤖 Would you like AI to generate an SEO-friendly description for you?\n\n1️⃣ *Yes, generate AI description*\n2️⃣ *No, I'll write my own*\n\nReply with 1 or 2.`,
+          replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n🤖 Would you like AI to generate an SEO-friendly description for you?\n\n1️⃣ *Yes, generate AI description*\n2️⃣ *No, I'll write my own*\n\nReply with 1 or 2.`,
           nextStep: 'ask_ai_desc'
         };
       } else {
         return {
-          replyText: `${prefix}\n\nNow let's set up your *Store Description.*\n\n*Please type your store description:*`,
+          replyText: `${prefix}\n\nNow let's set up your *Description.*\n\n${getContextualPrompts(cat).description}`,
           nextStep: 'collect_desc'
         };
       }
@@ -214,8 +250,8 @@ export async function POST(req: NextRequest) {
 
     switch (session.step) {
       case 'start':
-        replyText = `🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please enter your store name:*`;
-        nextStep = 'collect_name';
+        replyText = getTemplatePrompt(`🙏 *Welcome to DukaanHai!*\n\nI will help you build your online store in just a minute! 🚀\n\n*Please choose a website template:*`);
+        nextStep = 'collect_template';
         break;
 
       case 'main_menu':
@@ -483,27 +519,33 @@ export async function POST(req: NextRequest) {
         const candidateSlug = generateSlug(text);
         const slugExists = await prisma.business.findUnique({ where: { slug: candidateSlug } });
         if (slugExists) {
-          replyText = `⚠️ Sorry, the store name *"${text}"* is already taken.\n\nPlease try a different or more unique store name:`;
+          replyText = `⚠️ Sorry, the name *"${text}"* is already taken.\n\nPlease try a different or more unique name:`;
           nextStep = 'collect_name';
           break;
         }
         collectedData.name = text;
-        replyText = `Wow! *${text}* - that's a great name! 🎉\n\n*What do you sell?* (Enter Category)\n\nExamples: Groceries, Fashion, Food, Electronics, Handicrafts, etc.`;
-        nextStep = 'collect_category';
+        const cat = collectedData.category || 'general';
+        replyText = `Wow! *${text}* - that's a great name! 🎉\n\n${getContextualPrompts(cat).location}`;
+        nextStep = 'collect_location';
         break;
       }
 
       case 'collect_category':
+        // Legacy fallback
         collectedData.category = text;
-        replyText = `Perfect! ✅\n\n*Where do you operate from?* (City/Location)`;
+        replyText = `Perfect! ✅\n\n${getContextualPrompts('general').location}`;
         nextStep = 'collect_location';
         break;
 
-      case 'collect_location':
-        collectedData.location = text;
-        replyText = `*${text}* - great location! 📍\n\n*Please provide a short description about your store:*\n(2-3 sentences are enough)`;
-        nextStep = 'collect_description';
+      case 'collect_location': {
+        collectedData.location = text.toUpperCase() === 'SKIP' ? '' : text;
+        const cat = collectedData.category || 'general';
+        const prefix = text.toUpperCase() === 'SKIP' ? 'Got it!' : `*${text}* - great location! 📍`;
+        const dp = getDescPrompt(prefix, cat);
+        replyText = dp.replyText;
+        nextStep = dp.nextStep;
         break;
+      }
 
       case 'collect_description':
         collectedData.description = text;
@@ -815,14 +857,6 @@ export async function POST(req: NextRequest) {
            if (footers[0]) collectedData.footerText = footers[0];
            if (footers[1]) collectedData.copyrightText = footers[1];
         }
-        replyText = getTemplatePrompt('✅ Store details saved!\n\n*Please choose a website template:*');
-        nextStep = 'collect_template';
-        break;
-      }
-      case 'collect_template': {
-        const templateMap: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog', '4': 'elegant', '5': 'futuristic', '6': 'playful' };
-        collectedData.template = templateMap[text] || 'minimal';
-
         replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your headline & description\n✅ Preparing your website\n\nPlease wait a moment! ⏳`;
         nextStep = 'creating';
 
@@ -853,6 +887,23 @@ export async function POST(req: NextRequest) {
         });
         break;
       }
+      case 'collect_template': {
+        const idx = parseInt(text) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= TEMPLATES.length) {
+          collectedData.template = 'minimal';
+          collectedData.category = 'general';
+          replyText = `⚠️ Invalid selection. We've set your template to *Minimal* for now (you can change it later).\n\n${getContextualPrompts('general').name}`;
+        } else {
+          const t = TEMPLATES[idx];
+          collectedData.template = t.id;
+          collectedData.category = t.category;
+          replyText = `✅ Excellent choice! You selected *${t.name}*.\n\n${getContextualPrompts(t.category).name}`;
+        }
+        nextStep = 'collect_name';
+        break;
+      }
+
+
 
       case 'ask_add_product':
         if (text.toUpperCase() === 'YES' || text.toUpperCase() === 'HAAN' || text === '1') {

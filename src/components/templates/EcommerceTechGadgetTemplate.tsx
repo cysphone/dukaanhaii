@@ -2,10 +2,53 @@
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ShoppingBag, ChevronRight, Apple, Globe, Camera, MessageCircle, Phone, Mail, MapPin } from 'lucide-react';
 
-export default function EcommerceTechGadgetTemplate({ business, products }: any) {
+interface TemplateProps {
+  business: {
+    name: string;
+    slug: string;
+    headline?: string | null;
+    tagline?: string | null;
+    about?: string | null;
+    vision?: string | null;
+    mission?: string | null;
+    marketingDesc?: string | null;
+    whatsappNumber?: string | null;
+    location?: string | null;
+    category?: string | null;
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+    faviconUrl?: string | null;
+    ctaText?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
+    instagramUrl?: string | null;
+    facebookUrl?: string | null;
+    websiteUrl?: string | null;
+    primaryColor?: string | null;
+    secondaryColor?: string | null;
+    footerText?: string | null;
+    copyrightText?: string | null;
+  };
+  products: Array<{
+    id: string;
+    name: string;
+    price: number;
+    description?: string | null;
+    imageUrl?: string | null;
+    category?: string | null;
+    inStock: boolean;
+  }>;
+}
+
+export default function EcommerceTechGadgetTemplate({ business, products }: TemplateProps) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
+
+    const { scrollYProgress } = useScroll();
+    const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
 
     const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
     const waLink = (productName?: string) =>
@@ -15,132 +58,315 @@ export default function EcommerceTechGadgetTemplate({ business, products }: any)
                 : `Hi, I want to learn more about tech products at ${business.name}.`
         )}`;
 
+    const primaryColor = business.primaryColor || '#0066CC'; // apple blue
+
     return (
         <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans selection:bg-[#0066CC] selection:text-white">
             <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        .tech-font { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-      `}</style>
+              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+              .tech-font { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+              
+              /* Apple style smooth typography */
+              .antialiased { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+              
+              .glass-nav {
+                background: rgba(29, 29, 31, 0.72);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+              }
+            `}</style>
 
             {/* Apple-esque Dark Nav */}
-            <nav className="fixed w-full z-50 bg-[rgba(29,29,31,0.72)] backdrop-blur-lg border-b border-[#333336]">
-                <div className="max-w-[1000px] mx-auto px-4 lg:px-0 h-12 flex items-center justify-between tech-font text-xs font-medium text-white/80">
-                    <span className="text-white font-semibold flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" /></svg>
-                        {business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}
+            <nav className="fixed w-full z-50 glass-nav transition-all duration-300">
+                <div className="max-w-[1000px] mx-auto px-4 lg:px-0 h-14 flex items-center justify-between tech-font text-xs font-normal tracking-wide text-white/80 antialiased">
+                    <span className="text-white font-medium flex items-center gap-2">
+                        {business.logoUrl ? (
+                           <img src={business.logoUrl} alt={business.name} className="h-6 w-auto object-contain" /> 
+                        ) : (
+                           <span className="text-lg font-bold tracking-tight">{business.name}</span>
+                        )}
                     </span>
-                    <div className="flex gap-6">
+                    
+                    <div className="hidden md:flex gap-8">
                         <a href="#store" className="hover:text-white transition-colors">Store</a>
-                        {(business.about) && <a href="#about" className="hover:text-white transition-colors hidden sm:block">About</a>}
-                        {waNumber && <a href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Support</a>}
+                        <a href="#mac" className="hover:text-white transition-colors">Categories</a>
+                        {(business.about) && <a href="#about" className="hover:text-white transition-colors">About</a>}
+                        {waNumber && <a href={waLink()} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Support</a>}
+                    </div>
+
+                    <div className="flex gap-4">
+                       <SearchIcon className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
+                       <BagIcon className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
                     </div>
                 </div>
             </nav>
 
             {/* Clean Hero */}
-            <section className="pt-20 pb-10 bg-white text-center px-4 overflow-hidden border-b border-[#E5E5EA]">
-                <div className={`max-w-4xl mx-auto pt-16 pb-20 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <section className="relative pt-[120px] pb-10 bg-white text-center px-4 overflow-hidden min-h-[90vh] flex flex-col items-center">
+                <motion.div 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+                  className="max-w-4xl mx-auto pt-16 pb-12 w-full z-10 antialiased"
+                >
                     <h2 className="tech-font text-[#BF4800] font-semibold text-xs tracking-widest uppercase mb-4">
                         {business.category || 'New Arrival'}
                     </h2>
-                    <h1 className="tech-font text-5xl md:text-7xl font-bold tracking-tight mb-6">
+                    <h1 className="tech-font text-6xl md:text-[5.5rem] font-bold tracking-tighter mb-4 leading-none text-[#1D1D1F]">
                         {business.headline || business.name}
                     </h1>
-                    <p className="tech-font text-xl md:text-2xl text-[#86868B] font-medium max-w-2xl mx-auto mb-10 tracking-tight">
+                    <p className="tech-font text-2xl md:text-3xl text-[#1D1D1F] font-normal max-w-2xl mx-auto mb-10 tracking-tight leading-snug">
                         {business.tagline || 'Pro capabilities. Unprecedented performance. Beautiful design.'}
                     </p>
-                    <div className="flex justify-center gap-4 tech-font text-[15px]">
-                        <a href="#store" className="bg-[#0066CC] hover:bg-[#0077ED] text-white px-6 py-2.5 rounded-full font-medium transition-colors">
+                    <div className="flex justify-center items-center gap-6 tech-font text-[17px]">
+                        <a 
+                          href="#store" 
+                          style={{ backgroundColor: primaryColor }}
+                          className="text-white px-8 py-3 rounded-full font-medium hover:brightness-110 transition-all active:scale-95"
+                        >
                             Buy
                         </a>
                         {waNumber && (
-                            <a href={waLink()} style={{ backgroundColor: business.primaryColor || undefined, color: business.secondaryColor || undefined }} target="_blank" rel="noopener noreferrer" className="text-[#0066CC] hover:underline px-6 py-2.5 rounded-full font-medium transition-colors flex items-center gap-1">
-                                Learn more <span className="text-sm">›</span>
+                            <a 
+                              href={waLink()} 
+                              style={{ color: primaryColor }}
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="hover:underline font-medium transition-colors flex items-center gap-1 group"
+                            >
+                                Learn more <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </a>
                         )}
                     </div>
-                </div>
+                </motion.div>
+                
+                {business.bannerUrl && (
+                  <motion.div 
+                    style={{ scale }}
+                    className="w-full max-w-[1200px] mt-auto relative z-0"
+                  >
+                     <img src={business.bannerUrl} alt="Hero Product" className="w-full h-auto object-cover rounded-t-[3rem] shadow-2xl" />
+                     {/* Gradient fade into next section */}
+                     <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#F5F5F7] to-transparent"></div>
+                  </motion.div>
+                )}
             </section>
 
             {/* Featured Grid (Apple Style 2x2) */}
             {products.length > 0 && (
-                <section id="store" className="py-12 px-4 max-w-[1400px] mx-auto">
-                    <div className="grid md:grid-cols-2 gap-4">
-                        {products.map((product: any, idx: number) => (
-                            <div key={product.id} className={`bg-white rounded-[2rem] p-10 flex flex-col items-center text-center transition-transform hover:scale-[1.01] shadow-sm hover:shadow-md cursor-pointer ${idx === 0 && products.length % 2 !== 0 ? 'md:col-span-2' : ''}`}>
-                                <h3 className="tech-font text-3xl font-semibold tracking-tight mb-2">{product.name}</h3>
-                                {product.description && (
-                                    <p className="tech-font text-[#86868B] text-lg font-medium mb-4 max-w-md line-clamp-2">
-                                        {product.description}
-                                    </p>
-                                )}
-                                <div className="tech-font text-[#1D1D1F] font-medium mb-6">
-                                    From {formatPrice(product.price)}
-                                </div>
+                <section id="store" className="pt-24 pb-12 px-4 md:px-6 max-w-[1400px] mx-auto">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="text-center mb-16 antialiased"
+                    >
+                        <h2 className="tech-font text-5xl font-bold tracking-tighter text-[#1D1D1F]">The latest.</h2>
+                        <p className="tech-font text-2xl text-[#86868B] font-medium mt-4 tracking-tight">Take a look at what's new, right now.</p>
+                    </motion.div>
 
-                                <div className="flex gap-4 tech-font text-[15px] mb-12">
-                                    <a href={getProductUrl(business.slug, product.id)} className="bg-[#0066CC] hover:bg-[#0077ED] text-white px-5 py-1.5 rounded-full font-medium transition-colors">
-                                        Buy
-                                    </a>
-                                    <a href={getProductUrl(business.slug, product.id)} className="text-[#0066CC] hover:underline font-medium flex items-center py-1.5">
-                                        Learn more <span className="text-sm ml-1">›</span>
-                                    </a>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {products.map((product, idx) => (
+                            <motion.div 
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              whileInView={{ opacity: 1, scale: 1 }}
+                              viewport={{ once: true, margin: "-50px" }}
+                              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: (idx % 2) * 0.1 }}
+                              key={product.id} 
+                              className={`bg-white rounded-[2.5rem] p-12 flex flex-col items-center text-center transition-all hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] duration-500 overflow-hidden ${idx === 0 && products.length % 2 !== 0 ? 'md:col-span-2' : ''}`}
+                            >
+                                <div className="z-10 antialiased mb-10 w-full">
+                                    {product.category && (
+                                      <h4 className="tech-font text-xs font-semibold tracking-widest text-[#86868B] uppercase mb-2">
+                                         {product.category}
+                                      </h4>
+                                    )}
+                                    <h3 className="tech-font text-4xl font-bold tracking-tight mb-3 text-[#1D1D1F]">{product.name}</h3>
+                                    
+                                    {product.description && (
+                                        <p className="tech-font text-[#1D1D1F] text-[17px] font-normal mb-5 max-w-md mx-auto leading-relaxed">
+                                            {product.description}
+                                        </p>
+                                    )}
+                                    
+                                    <div className="tech-font text-[#86868B] font-medium mb-6">
+                                        From {formatPrice(product.price)}
+                                    </div>
+
+                                    <div className="flex justify-center gap-6 tech-font text-[15px]">
+                                        <a 
+                                          href={getProductUrl(business.slug, product.id)} 
+                                          style={{ backgroundColor: primaryColor }}
+                                          className="text-white px-6 py-2 rounded-full font-medium hover:brightness-110 transition-all"
+                                        >
+                                            Buy
+                                        </a>
+                                        <a 
+                                          href={getProductUrl(business.slug, product.id)} 
+                                          style={{ color: primaryColor }}
+                                          className="hover:underline font-medium flex items-center group"
+                                        >
+                                            Learn more <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </a>
+                                    </div>
+                                    
+                                    {!product.inStock && (
+                                       <div className="mt-4 tech-font text-sm font-medium text-red-500">Currently unavailable</div>
+                                    )}
                                 </div>
 
                                 {product.imageUrl && (
-                                    <div className="w-full max-w-sm mt-auto">
-                                        <img src={product.imageUrl} alt={product.name} className="w-full h-auto object-contain drop-shadow-xl" />
+                                    <div className="w-full max-w-lg mt-auto relative transform transition-transform duration-700 hover:scale-105">
+                                        <img src={product.imageUrl} alt={product.name} className="w-full h-auto object-contain drop-shadow-2xl" />
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </section>
             )}
+            
+            {/* Marketing Callout */}
+            {business.marketingDesc && (
+               <section className="py-24 bg-white text-center px-4 overflow-hidden antialiased border-y border-[#E5E5EA]">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8 }}
+                    className="max-w-4xl mx-auto"
+                  >
+                     <h2 className="tech-font text-4xl md:text-[3.5rem] font-bold tracking-tighter text-[#1D1D1F] leading-tight mb-8">
+                       {business.marketingDesc}
+                     </h2>
+                  </motion.div>
+               </section>
+            )}
 
             {/* Specs / Info Panel */}
             {(business.about || business.mission) && (
-                <section id="about" className="py-24 bg-black text-white text-center px-4">
-                    <div className="max-w-3xl mx-auto tech-font">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-10">Innovation everywhere.</h2>
-                        <p className="text-xl md:text-2xl text-[#86868B] font-medium leading-relaxed mb-16">
-                            {business.about || business.mission}
-                        </p>
-                        {business.vision && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left border-t border-[#333336] pt-12">
-                                <div className="col-span-1 md:col-span-3">
-                                    <h3 className="text-xs font-semibold tracking-widest text-[#86868B] uppercase mb-4">Core Vision</h3>
-                                    <p className="text-2xl font-semibold tracking-tight leading-snug">{business.vision}</p>
-                                </div>
-                            </div>
-                        )}
+                <section id="about" className="py-32 bg-black text-white px-4 md:px-12 antialiased overflow-hidden relative">
+                    {/* Background glow */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                    
+                    <div className="max-w-6xl mx-auto tech-font">
+                        <motion.div 
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.8 }}
+                          className="text-center max-w-4xl mx-auto mb-24"
+                        >
+                           <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 leading-none">Innovation <br/>everywhere.</h2>
+                           <p className="text-2xl md:text-3xl text-[#86868B] font-medium leading-relaxed tracking-tight">
+                               {business.about || business.mission}
+                           </p>
+                        </motion.div>
+                        
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {business.mission && (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 30 }}
+                                  whileInView={{ opacity: 1, y: 0 }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 0.8, delay: 0.1 }}
+                                  className="bg-[#1D1D1F] p-12 rounded-[2.5rem]"
+                                >
+                                    <h3 className="text-[15px] font-semibold tracking-widest text-[#86868B] uppercase mb-4">Mission</h3>
+                                    <p className="text-2xl md:text-3xl font-semibold tracking-tight leading-snug">{business.mission}</p>
+                                </motion.div>
+                            )}
+                            {business.vision && (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 30 }}
+                                  whileInView={{ opacity: 1, y: 0 }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 0.8, delay: 0.2 }}
+                                  className="bg-[#1D1D1F] p-12 rounded-[2.5rem]"
+                                >
+                                    <h3 className="text-[15px] font-semibold tracking-widest text-[#86868B] uppercase mb-4">Vision</h3>
+                                    <p className="text-2xl md:text-3xl font-semibold tracking-tight leading-snug">{business.vision}</p>
+                                </motion.div>
+                            )}
+                        </div>
                     </div>
                 </section>
             )}
 
             {/* Clean Footer */}
-            <footer className="bg-[#F5F5F7] border-t border-[#E5E5EA] py-8 text-center tech-font text-xs text-[#86868B]">
-
-        <div className="flex flex-wrap gap-4 items-center justify-center mt-4 mb-4 w-full">
-          {business.instagramUrl && <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Instagram</a>}
-          {business.facebookUrl && <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Facebook</a>}
-          {business.websiteUrl && <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Website</a>}
-          {business.email && <a href={`mailto:${business.email}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Email</a>}
-          {business.phoneNumber && <a href={`tel:${business.phoneNumber}`} className="opacity-80 hover:opacity-100 underline decoration-1 underline-offset-4">Call Us</a>}
-        </div>
-
-                <div className="max-w-[1000px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p>Copyright © {new Date().getFullYear()} {business.name}. All rights reserved.</p>
-                    <div className="flex gap-4">
-                        <a href="/" className="hover:text-[#1D1D1F] transition-colors">Built on DukaanHai</a>
-                        {business.location && <span className="border-l border-[#D2D2D7] pl-4">{business.location}</span>}
-                    </div>
+            <footer className="bg-[#F5F5F7] py-12 px-4 tech-font text-[11px] text-[#86868B] antialiased">
+                <div className="max-w-[1000px] mx-auto">
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12 border-b border-[#D2D2D7] pb-12">
+                      <div className="md:col-span-2">
+                         <h3 className="text-[#1D1D1F] font-semibold mb-4 text-sm">{business.name}</h3>
+                         <p className="leading-relaxed mb-6 max-w-sm">
+                           {business.footerText || "Designed to push the boundaries of what's possible."}
+                         </p>
+                         <div className="flex gap-4">
+                             {business.instagramUrl && (
+                               <a href={business.instagramUrl} target="_blank" rel="noreferrer" className="text-[#86868B] hover:text-[#1D1D1F] transition-colors">
+                                 <Camera className="w-5 h-5" />
+                               </a>
+                             )}
+                             {business.facebookUrl && (
+                               <a href={business.facebookUrl} target="_blank" rel="noreferrer" className="text-[#86868B] hover:text-[#1D1D1F] transition-colors">
+                                 <MessageCircle className="w-5 h-5" />
+                               </a>
+                             )}
+                             {business.websiteUrl && (
+                               <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="text-[#86868B] hover:text-[#1D1D1F] transition-colors">
+                                 <Globe className="w-5 h-5" />
+                               </a>
+                             )}
+                         </div>
+                      </div>
+                      
+                      <div>
+                         <h3 className="text-[#1D1D1F] font-semibold mb-4 text-xs">Contact Support</h3>
+                         <ul className="space-y-3">
+                            {waNumber && <li><a href={waLink()} target="_blank" rel="noreferrer" className="hover:text-[#1D1D1F] hover:underline">WhatsApp Support</a></li>}
+                            {business.phoneNumber && <li><a href={`tel:${business.phoneNumber}`} className="hover:text-[#1D1D1F] hover:underline">{business.phoneNumber}</a></li>}
+                            {business.email && <li><a href={`mailto:${business.email}`} className="hover:text-[#1D1D1F] hover:underline">{business.email}</a></li>}
+                         </ul>
+                      </div>
+                      
+                      <div>
+                         <h3 className="text-[#1D1D1F] font-semibold mb-4 text-xs">Location</h3>
+                         <ul className="space-y-3">
+                            {business.location && (
+                               <li className="flex items-start gap-2">
+                                  <MapPin className="w-4 h-4 shrink-0" /> {business.location}
+                               </li>
+                            )}
+                         </ul>
+                      </div>
+                   </div>
+                   
+                   <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-[#86868B]">
+                       <p>{business.copyrightText || `Copyright © ${new Date().getFullYear()} ${business.name}. All rights reserved.`}</p>
+                       <div className="flex gap-4">
+                           <a href="/" className="hover:text-[#1D1D1F] hover:underline transition-colors">Built on DukaanHai</a>
+                       </div>
+                   </div>
                 </div>
-              <div className='w-full text-center mt-4 border-t border-black/10 pt-4 text-xs opacity-60\'>
-          {business.footerText && <p className='mb-1'>{business.footerText}</p>}
-          <p>{business.copyrightText || '© ' + new Date().getFullYear() + ' ' + business.name + '. All rights reserved.'}</p>
-        </div>
-      </footer>
+            </footer>
         </div>
     );
+}
+
+function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BagIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M4.5 5.5C4.5 3.5 5.5 1.5 7.5 1.5C9.5 1.5 10.5 3.5 10.5 5.5M2.5 5.5H12.5L13.5 14.5H1.5L2.5 5.5Z" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  );
 }
