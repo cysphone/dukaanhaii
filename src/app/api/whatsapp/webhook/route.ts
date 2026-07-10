@@ -1124,6 +1124,11 @@ export async function POST(req: NextRequest) {
         nextStep = 'adding_product';
         break;
 
+      case 'creating':
+        replyText = `⏳ Please wait a moment, we are setting up your store...`;
+        nextStep = 'creating';
+        break;
+
       case 'completed':
         replyText = `Task completed successfully! 🎉\n\nType *MENU* to go back.`;
         if (text.toUpperCase() === 'RESET' || text.toUpperCase() === 'MENU') {
@@ -1143,8 +1148,8 @@ export async function POST(req: NextRequest) {
       data: { step: nextStep, collectedData },
     });
 
-    // Send reply (skip for collect_template since creation is async)
-    if (replyText && session.step !== 'collect_template') {
+    // Send reply
+    if (replyText) {
       await sendWhatsAppMessage(phoneNumber, replyText);
     }
 
