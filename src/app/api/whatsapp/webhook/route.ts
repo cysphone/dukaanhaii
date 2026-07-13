@@ -27,10 +27,9 @@ export async function GET(req: NextRequest) {
 // Incoming messages
 
 const getTemplatePrompt = (title: string) => {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
   let message = `${title}\n\n`;
   TEMPLATES.forEach((t, i) => {
-    message += `*${i + 1}.* ${t.preview} *${t.name}* — ${t.tag} (Preview: ${appUrl}/store/demo?template=${t.id})\n`;
+    message += `*${i + 1}.* ${t.preview} *${t.name}* — ${t.tag}\n`;
   });
   message += `\nReply with a number from 1 to ${TEMPLATES.length}.`;
   return message;
@@ -160,7 +159,7 @@ export async function POST(req: NextRequest) {
             where: { phoneNumber },
             data: { step: 'handle_menu_choice', collectedData: { businessId: existingBusiness.id } },
           });
-          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
+          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
           const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : (msgUpper === 'MENU' || msgUpper === 'RESET' ? `✅ Menu returned!\n\n` : '');
           await sendWhatsAppMessage(phoneNumber, `${prefix}${replyText}`);
           return NextResponse.json({ status: 'ok' });
@@ -176,14 +175,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Detect Returning Users automatically (if step is start but they already have an account)
-    if (session.step === 'start') {
+    // Detect Returning Users automatically (if step is start or completed but they already have an account)
+    if (session.step === 'start' || session.step === 'completed') {
       if (existingBusiness) {
         session = await prisma.whatsappSession.update({
           where: { phoneNumber },
           data: { step: 'handle_menu_choice', collectedData: { businessId: existingBusiness.id } }
         });
-        const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
+        const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
         await sendWhatsAppMessage(phoneNumber, replyText);
         return NextResponse.json({ status: 'ok' });
       } else if (existingUser) {
@@ -242,7 +241,7 @@ export async function POST(req: NextRequest) {
     };
 
     // AI Conversational Interceptor (Runs before switch for idle states)
-    const idleStates = ['start', 'main_menu', 'handle_menu_choice', 'completed'];
+    const idleStates = ['main_menu', 'handle_menu_choice', 'completed'];
     if (idleStates.includes(session.step) && text && !['1','2','3','4','5','6','7','MENU','RESET','SKIP'].includes(text.toUpperCase())) {
       const aiResponse = await classifyUserIntent(text);
       if (aiResponse.intent === 'create_store') {
@@ -260,7 +259,7 @@ export async function POST(req: NextRequest) {
            nextStep = 'collect_name';
         }
       } else if (aiResponse.intent === 'menu') {
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
         nextStep = 'handle_menu_choice';
       } else {
         // Only override if the AI gives a meaningful reply, otherwise let the standard flow handle it
@@ -279,7 +278,7 @@ export async function POST(req: NextRequest) {
           break;
 
       case 'main_menu':
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding & Details (Logo, Colors, Socials)\n7️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, 6, or 7.`;
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
         nextStep = 'handle_menu_choice';
         break;
 
@@ -307,21 +306,17 @@ export async function POST(req: NextRequest) {
             nextStep = 'select_edit_product';
           }
         } else if (text === '4') {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-          replyText = `You can only create and manage one site via WhatsApp.\n\nTo create a new site, please log in to the website:\n${appUrl}/login\n\nType *MENU* to go back to the menu.`;
-          nextStep = 'handle_menu_choice';
-        } else if (text === '5') {
           replyText = getTemplatePrompt('🎨 *Select a new template for your website:*');
           nextStep = 'save_website_template';
-        } else if (text === '6') {
+        } else if (text === '5') {
           replyText = `🎨 *What branding detail would you like to edit?*\n\n1️⃣ About Us\n2️⃣ Brand Logo\n3️⃣ Favicon\n4️⃣ Brand Colors\n5️⃣ Social Links\n6️⃣ Contact Info\n7️⃣ Footer & Copyright\n\nReply with a number 1-7.`;
           nextStep = 'handle_branding_choice';
-        } else if (text === '7') {
+        } else if (text === '6') {
           const storeUrl = getStoreUrl(existingBusiness?.slug || '');
           replyText = `🔗 *Here is your store link:*\n\n${storeUrl}\n\nType *MENU* to go back.`;
           nextStep = 'completed';
         } else {
-          replyText = `Please reply with a number from 1 to 7.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template\n6️⃣ Edit Branding\n7️⃣ Get Store Link`;
+          replyText = `Please reply with a number from 1 to 6.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding\n6️⃣ Get Store Link`;
           nextStep = 'handle_menu_choice';
         }
         break;
