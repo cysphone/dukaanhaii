@@ -253,7 +253,7 @@ Return only the enhanced product image.`;
 }
 
 export type IntentClassification = {
-  intent: 'create_store' | 'get_link' | 'menu' | 'unknown';
+  intent: 'create_store' | 'get_link' | 'menu' | 'add_product' | 'edit_desc' | 'edit_template' | 'edit_branding' | 'unknown';
   extractedData?: {
     category?: string;
   };
@@ -261,50 +261,40 @@ export type IntentClassification = {
 };
 
 /**
- * Classifies a free-form WhatsApp message to determine the user's intent.
+ * Classifies a free-form WhatsApp message to determine the user's intent using OpenAI.
  */
 export async function classifyUserIntent(messageText: string): Promise<IntentClassification> {
-  const prompt = `You are an AI assistant for a WhatsApp bot that helps users manage their online store.
-Analyze the following user message (which could be in English, Hindi, Hinglish, or any language).
-Determine what the user wants to do.
+  const prompt = `You are a smart router for a WhatsApp bot.
+Analyze the user's message and determine what they want to do.
 
 Possible Intents:
-- "create_store": The user wants to build, create, or open a new store/website/shop (e.g., "mujhe dukaan kholna hai", "create shop").
-- "get_link": The user is asking for their website link or URL (e.g., "link", "mera link do", "website url").
-- "menu": The user is asking for the main menu or options (e.g., "menu", "options", "what can you do").
-- "unknown": General chat, greetings, or anything else (e.g., "hello", "hi", "how are you", gibberish).
-
-If the intent is "create_store", try to extract the store 'category' if they mentioned it (e.g., "kapdo ka dukaan" -> category: "Clothing").
-
-If the intent is "unknown", write a short, polite conversational reply (max 1-2 sentences) in the SAME language the user used, asking if they want to build a store or see the menu. Return this in "replyText".
+- "create_store": Wants to build/create a new store.
+- "get_link": Wants to get their website link.
+- "menu": Asking for the menu or options.
+- "add_product": Wants to add a new product/item to sell.
+- "edit_desc": Wants to change their store description or tagline.
+- "edit_template": Wants to change the website design/theme/template.
+- "edit_branding": Wants to edit logo, colors, or social links.
+- "unknown": General chat or anything else.
 
 Return a JSON object with this exact structure:
 {
-  "intent": "create_store" | "get_link" | "menu" | "unknown",
+  "intent": "create_store" | "get_link" | "menu" | "add_product" | "edit_desc" | "edit_template" | "edit_branding" | "unknown",
   "extractedData": {
     "category": "string or null"
   },
-  "replyText": "string or null"
+  "replyText": "string or null" // if unknown, write a friendly 1-sentence reply asking if they want to see the menu.
 }
 
 User Message: "${messageText}"`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found in response');
+    const gptText = await fallbackToGPT(prompt, true);
+    const jsonMatch = gptText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON found in GPT response');
     return JSON.parse(jsonMatch[0]) as IntentClassification;
   } catch (error) {
-    console.warn('Gemini intent classification failed, attempting OpenAI fallback...', error);
-    try {
-      const gptText = await fallbackToGPT(prompt, true);
-      const jsonMatch = gptText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON found in GPT response');
-      return JSON.parse(jsonMatch[0]) as IntentClassification;
-    } catch (gptError) {
-      console.error('Both AI models failed (Intent Classification):', gptError);
-      return { intent: 'unknown', replyText: "I didn't quite catch that. Type *MENU* to see your options or to start building your store!" };
-    }
+    console.error('Intent classification failed:', error);
+    return { intent: 'unknown', replyText: "I didn't quite catch that. Type *MENU* to see your options." };
   }
 }
