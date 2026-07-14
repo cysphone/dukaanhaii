@@ -113,6 +113,9 @@ export async function POST(req: NextRequest) {
       include: { businesses: true }
     });
     const existingBusiness = existingUser?.businesses?.[0];
+    const templateCat = existingBusiness ? getTemplateById(existingBusiness.templateType)?.category : 'ecommerce';
+    const isService = templateCat === 'service' || templateCat === 'hotel';
+    const itemWord = isService ? 'Service' : 'Product';
 
     // -- Global Command Interceptor --
     if (['DASHBOARD', 'RESET', 'MENU', 'HELP'].includes(msgUpper) || isTimeout) {
@@ -300,7 +303,7 @@ export async function POST(req: NextRequest) {
            nextStep = 'collect_name';
         }
       } else if (aiResponse.intent === 'menu') {
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New ${itemWord}\n3️⃣ Edit Existing ${itemWord}\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
         nextStep = 'handle_menu_choice';
         if (existingBusiness) collectedData.businessId = existingBusiness.id;
       } else {
@@ -320,7 +323,7 @@ export async function POST(req: NextRequest) {
           break;
 
       case 'main_menu':
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
+        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New ${itemWord}\n3️⃣ Edit Existing ${itemWord}\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
         nextStep = 'handle_menu_choice';
         break;
 
@@ -329,20 +332,20 @@ export async function POST(req: NextRequest) {
           replyText = `✏️ Please send your new store tagline or description:`;
           nextStep = 'edit_store_desc';
         } else if (text === '2') {
-          replyText = `Great! 📝 Enter your new product's *Name*:`;
+          replyText = `Great! 📝 Enter your new ${itemWord.toLowerCase()}'s *Name*:`;
           nextStep = 'collect_product_name';
         } else if (text === '3') {
           // Fetch products
           const products = await prisma.product.findMany({ where: { businessId: collectedData.businessId } });
           if (products.length === 0) {
-            replyText = `You don't have any products in your store.\n\nType *MENU* to go back.`;
+            replyText = `You don't have any ${itemWord.toLowerCase()}s in your store.\n\nType *MENU* to go back.`;
             nextStep = 'handle_menu_choice';
           } else {
-            let pList = `Your Products:\n\n`;
+            let pList = `Your ${itemWord}s:\n\n`;
             products.forEach((p, idx) => {
               pList += `${idx + 1}. ${p.name} (₹${p.price})\n`;
             });
-            pList += `\nWhich product do you want to edit? (Reply with a number, e.g., 1)`;
+            pList += `\nWhich ${itemWord.toLowerCase()} do you want to edit? (Reply with a number, e.g., 1)`;
             replyText = pList;
             collectedData.tmpProducts = products.map(p => p.id);
             nextStep = 'select_edit_product';
@@ -552,7 +555,7 @@ export async function POST(req: NextRequest) {
           nextStep = 'save_product_field';
         } else if (text === '4') {
           await prisma.product.delete({ where: { id: collectedData.editProductId } });
-          replyText = `🗑️ Product deleted successfully!\n\nType *MENU* to go back.`;
+          replyText = `🗑️ ${itemWord} deleted successfully!\n\nType *MENU* to go back.`;
           nextStep = 'completed';
         } else {
           replyText = `Please reply with 1, 2, 3, or 4.`;
@@ -579,7 +582,7 @@ export async function POST(req: NextRequest) {
           data: updateData
         });
 
-        replyText = `✅ Product updated successfully!\n\nType *MENU* to go back to the main menu.`;
+        replyText = `✅ ${itemWord} updated successfully!\n\nType *MENU* to go back to the main menu.`;
         nextStep = 'completed';
         break;
       }
@@ -1197,6 +1200,49 @@ export async function POST(req: NextRequest) {
         nextStep = 'creating';
         break;
 
+      case 'collect_additional_images': {
+        const iWord = collectedData.itemWord || 'Product';
+        if (text.toUpperCase() === 'DONE' || text.toUpperCase() === 'NO') {
+          replyText = `Got it! Would you like to add another ${iWord.toLowerCase()}? Reply *YES* or *NO*.`;
+          nextStep = 'ask_add_product';
+        } else if (message.image && message.image.id) {
+          replyText = `⏳ Uploading image to gallery...`;
+          nextStep = 'collect_additional_images';
+          const busId = collectedData.businessId;
+          const prodId = collectedData.currentProductId;
+          uploadWaImage(message.image.id, `dukaanhai/products/${busId}`).then(async (url) => {
+             if (url) {
+               const p = await prisma.product.findUnique({ where: { id: prodId } });
+               if (p) {
+                 await prisma.product.update({
+                   where: { id: prodId },
+                   data: { images: [...p.images, url] }
+                 });
+               }
+               await sendWhatsAppMessage(phoneNumber, `✅ Image added to gallery! Send another image, or type *DONE*.`);
+             } else {
+               await sendWhatsAppMessage(phoneNumber, `❌ Failed to upload image. Send another or type *DONE*.`);
+             }
+          });
+        } else {
+          replyText = `Please send an actual *Photo (Image)* or type *DONE* to finish.`;
+          nextStep = 'collect_additional_images';
+        }
+        break;
+      }
+
+      case 'ask_add_product': {
+        const iWord = collectedData.itemWord || 'Product';
+        if (text.toUpperCase() === 'YES') {
+          replyText = `Great! 📝 Enter your new ${iWord.toLowerCase()}'s *Name*:`;
+          nextStep = 'collect_product_name';
+        } else {
+          replyText = `✅ Done! Type *MENU* to see more options.`;
+          nextStep = 'completed';
+        }
+        break;
+      }
+
       case 'completed':
         replyText = `Task completed successfully! 🎉\n\nType *MENU* to go back.`;
         if (text.toUpperCase() === 'RESET' || text.toUpperCase() === 'MENU') {
@@ -1355,21 +1401,23 @@ async function handleAddProduct(phoneNumber: string, data: any, message: any) {
       }
     }
 
-    await prisma.product.create({
+    const product = await prisma.product.create({
       data: {
         businessId: data.businessId,
         name: data.productName,
         price: data.productPrice,
         description: data.productDesc,
         imageUrl: imageUrl || null,
+        images: imageUrl ? [imageUrl] : [],
         inStock: true
       }
     });
 
-    await sendWhatsAppMessage(phoneNumber, `✅ Product added successfully!\n\nWould you like to add another product? Reply *YES* or *NO*.`);
+    const iWord = data.itemWord || 'Item';
+    await sendWhatsAppMessage(phoneNumber, `✅ ${iWord} added successfully!\n\n🖼️ Would you like to add more images to this gallery? Send another image now, or reply *DONE* to finish.`);
     await prisma.whatsappSession.update({
       where: { phoneNumber },
-      data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },
+      data: { step: 'collect_additional_images', collectedData: { businessId: data.businessId, currentProductId: product.id, itemWord: data.itemWord } },
     });
   } catch (error) {
     console.error('Error adding product:', error);
@@ -1511,21 +1559,23 @@ async function handleAddProductFromBuffer(phoneNumber: string, data: any) {
       imageUrl = await uploadImageToCloudinary(rawBuffer, `dukaanhai/products/${data.businessId}`);
     }
 
-    await prisma.product.create({
+    const product = await prisma.product.create({
       data: {
         businessId: data.businessId,
         name: data.productName,
         price: data.productPrice,
         description: data.productDesc,
         imageUrl: imageUrl || null,
+        images: imageUrl ? [imageUrl] : [],
         inStock: true,
       },
     });
 
-    await sendWhatsAppMessage(phoneNumber, `✅ Product added successfully!\n\nWould you like to add another product? Reply *YES* or *NO*.`);
+    const iWord = data.itemWord || 'Item';
+    await sendWhatsAppMessage(phoneNumber, `✅ ${iWord} added successfully!\n\n🖼️ Would you like to add more images to this gallery? Send another image now, or reply *DONE* to finish.`);
     await prisma.whatsappSession.update({
       where: { phoneNumber },
-      data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },
+      data: { step: 'collect_additional_images', collectedData: { businessId: data.businessId, currentProductId: product.id, itemWord: data.itemWord } },
     });
   } catch (error) {
     console.error('handleAddProductFromBuffer error:', error);

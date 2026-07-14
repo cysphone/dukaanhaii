@@ -253,7 +253,7 @@ Return only the enhanced product image.`;
 }
 
 export type IntentClassification = {
-  intent: 'create_store' | 'get_link' | 'menu' | 'add_product' | 'edit_desc' | 'edit_template' | 'edit_branding' | 'unknown';
+  intent: 'create_store' | 'get_link' | 'menu' | 'add_product' | 'add_service' | 'edit_desc' | 'edit_template' | 'edit_branding' | 'unknown';
   extractedData?: {
     category?: string;
   };
