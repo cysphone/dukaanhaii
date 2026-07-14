@@ -4,6 +4,8 @@ import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, g
 import { generateSlug, getStoreUrl } from '@/lib/utils';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
 import { TEMPLATES, getTemplateById } from '@/lib/templates';
+import { handleEcommerceFlow } from './flows/ecommerceFlow';
+import { handleServiceFlow } from './flows/serviceFlow';
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!;
 const WA_TOKEN = process.env.WHATSAPP_TOKEN!;
 const PHONE_ID = process.env.WHATSAPP_PHONE_ID!;
@@ -199,7 +201,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const collectedData = (session.collectedData as any) || {};
+    let collectedData = (session.collectedData as any) || {};
 
     let replyText = '';
     let nextStep = session.step;
@@ -312,6 +314,38 @@ export async function POST(req: NextRequest) {
           replyText = aiResponse.replyText;
           nextStep = session.step; // stay in idle state
         }
+      }
+    }
+
+    const flowStates = [
+      'ask_add_product', 'collect_product_name', 'collect_product_price',
+      'ask_product_desc_ai', 'ai_product_desc_pending', 'ai_product_desc_choose_option',
+      'collect_product_desc', 'collect_product_image', 'ask_ai_image',
+      'ai_image_pending', 'collect_additional_images'
+    ];
+
+    if (!replyText && flowStates.includes(session.step)) {
+      let result;
+      if (isService) {
+        result = await handleServiceFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message, itemWord);
+      } else {
+        result = await handleEcommerceFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message, itemWord);
+      }
+      
+      if (result.handled) {
+        if (result.replyText === '') {
+          return NextResponse.json({ status: 'ok' });
+        }
+        replyText = result.replyText || '';
+        nextStep = result.nextStep || session.step || 'start';
+        collectedData = result.collectedData;
+        
+        await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: nextStep, collectedData },
+        });
+        await sendWhatsAppMessage(phoneNumber, replyText);
+        return NextResponse.json({ status: 'ok' });
       }
     }
 
