@@ -16,9 +16,9 @@ import GymZenTemplate from '@/components/templates/GymZenTemplate';
 import HotelBoutiqueTemplate from '@/components/templates/HotelBoutiqueTemplate';
 import HotelLuxuryTemplate from '@/components/templates/HotelLuxuryTemplate';
 import HotelResortTemplate from '@/components/templates/HotelResortTemplate';
-import MinimalTemplate from '@/components/templates/MinimalTemplate';
+import MinimalTemplate from '@/components/templates/minimal';
 import PlayfulTemplate from '@/components/templates/PlayfulTemplate';
-import ServiceModernTemplate from '@/components/templates/ServiceModernTemplate';
+import ServiceModernTemplate from '@/components/templates/service-modern';
 import PortfolioCreativeTemplate from '@/components/templates/PortfolioCreativeTemplate';
 import LandingMinimalTemplate from '@/components/templates/LandingMinimalTemplate';
 
