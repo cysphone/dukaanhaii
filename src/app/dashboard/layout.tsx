@@ -9,8 +9,9 @@ import { signOut } from 'next-auth/react';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '⊞' },
   { href: '/dashboard/business', label: 'Business Info', icon: '🏪' },
-  { href: '/dashboard/products', label: 'Products', icon: '📦' },
+  { href: '/dashboard/products', label: 'Catalog', icon: '📦' },
   { href: '/dashboard/templates', label: 'Templates', icon: '🎨' },
+  { href: '/dashboard/config', label: 'Template Config', icon: '🛠️' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -111,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               href="/dashboard/products"
               className="btn-primary text-sm"
             >
-              + Add Product
+              + Add Catalog Item
             </a>
           </div>
         </header>

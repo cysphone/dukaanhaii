@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { formatPrice } from '@/lib/utils';
+import { getTemplateById } from '@/lib/templates';
 
 interface Product {
   id: string;
@@ -20,7 +21,7 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
-  const [businessId, setBusinessId] = useState('');
+  const [business, setBusiness] = useState<any>(null);
 
   const [form, setForm] = useState({
     name: '', price: '', description: '',
@@ -39,7 +40,7 @@ export default function ProductsPage() {
       const bizData = await bizRes.json();
       
       if (bizData.business) {
-        setBusinessId(bizData.business.id);
+        setBusiness(bizData.business);
         const prodRes = await fetch(`/api/products?businessId=${bizData.business.id}`);
         if (prodRes.ok) {
           const prodData = await prodRes.json();
@@ -58,10 +59,11 @@ export default function ProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!business) return;
     setSaving(true);
 
     const formData = new FormData();
-    formData.append('businessId', businessId);
+    formData.append('businessId', business.id);
     formData.append('name', form.name);
     formData.append('price', form.price);
     formData.append('description', form.description);
@@ -71,7 +73,7 @@ export default function ProductsPage() {
 
     const res = await fetch(editing ? `/api/products/${editing.id}` : '/api/products', {
       method: editing ? 'PUT' : 'POST',
-      body: formData, // No Content-Type header needed for FormData
+      body: formData,
     });
 
     if (res.ok) {
@@ -85,7 +87,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this product?')) return;
+    if (!confirm('Are you sure you want to delete this item?')) return;
     await fetch(`/api/products/${id}`, { method: 'DELETE' });
     setProducts(products.filter(p => p.id !== id));
   };
@@ -101,40 +103,45 @@ export default function ProductsPage() {
     setShowForm(true);
   };
 
+  const templateCat = business ? getTemplateById(business.templateType)?.category : 'ecommerce';
+  const isService = templateCat === 'service' || templateCat === 'hotel';
+  const itemWord = isService ? 'Service' : 'Product';
+  const itemWordPlural = isService ? 'Services' : 'Products';
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-surface-900">Products</h1>
-          <p className="text-surface-500 mt-1">{products.length} product{products.length !== 1 ? 's' : ''} in your catalog</p>
+          <h1 className="text-2xl font-black text-surface-900">{itemWordPlural}</h1>
+          <p className="text-surface-500 mt-1">{products.length} {itemWord.toLowerCase()}{products.length !== 1 ? 's' : ''} in your catalog</p>
         </div>
         <button
           onClick={() => { setShowForm(true); setEditing(null); setForm({ name: '', price: '', description: '' }); setImageFile(null); }}
           className="btn-primary"
         >
-          + Add Product
+          + Add {itemWord}
         </button>
       </div>
 
       {/* Add/Edit Form */}
       {showForm && (
         <div className="card p-8 border-brand-200 bg-brand-50/30">
-          <h2 className="font-bold text-surface-900 mb-6">{editing ? 'Edit Product' : 'Add New Product'}</h2>
+          <h2 className="font-bold text-surface-900 mb-6">{editing ? `Edit ${itemWord}` : `Add New ${itemWord}`}</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid md:grid-cols-2 gap-5">
               <div>
-                <label className="label">Product Name *</label>
+                <label className="label">{itemWord} Name *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   required
-                  placeholder="e.g. Basmati Rice 5kg"
+                  placeholder={isService ? "e.g. Graphic Design" : "e.g. Basmati Rice 5kg"}
                   className="input-field"
                 />
               </div>
               <div>
-                <label className="label">Price (₹) *</label>
+                <label className="label">{isService ? 'Hourly Rate / Price (₹) *' : 'Price (₹) *'}</label>
                 <input
                   type="number"
                   value={form.price}
@@ -142,7 +149,7 @@ export default function ProductsPage() {
                   required
                   min="0"
                   step="0.01"
-                  placeholder="e.g. 450"
+                  placeholder={isService ? "e.g. 500/hr" : "e.g. 450"}
                   className="input-field"
                 />
               </div>
@@ -154,13 +161,13 @@ export default function ProductsPage() {
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
                 rows={3}
-                placeholder="Product description (or leave empty for AI to generate)..."
+                placeholder={`${itemWord} description (or leave empty for AI to generate)...`}
                 className="input-field resize-none"
               />
             </div>
 
             <div>
-              <label className="label">Product Image</label>
+              <label className="label">{isService ? 'Cover Photo' : 'Product Image'}</label>
               <input
                 type="file"
                 accept="image/*"
@@ -180,7 +187,7 @@ export default function ProductsPage() {
 
             <div className="flex items-center gap-3">
               <button type="submit" disabled={saving} className="btn-primary">
-                {saving ? 'Saving...' : editing ? 'Update Product' : 'Add Product'}
+                {saving ? 'Saving...' : editing ? `Update ${itemWord}` : `Add ${itemWord}`}
               </button>
               <button
                 type="button"
@@ -201,9 +208,9 @@ export default function ProductsPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="card p-12 text-center">
-          <div className="text-5xl mb-4">📦</div>
-          <h3 className="font-bold text-surface-900 mb-2">No products yet</h3>
-          <p className="text-surface-500 text-sm">Add your first product to start selling</p>
+          <div className="text-5xl mb-4">{isService ? '⚙️' : '📦'}</div>
+          <h3 className="font-bold text-surface-900 mb-2">No {itemWord.toLowerCase()}s yet</h3>
+          <p className="text-surface-500 text-sm">Add your first {itemWord.toLowerCase()} to get started</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -219,17 +226,19 @@ export default function ProductsPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl">📦</span>
+                    <span className="text-4xl">{isService ? '⚙️' : '📦'}</span>
                   </div>
                 )}
-                <div className={`absolute top-2 right-2 badge ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {product.inStock ? 'In Stock' : 'Out of Stock'}
-                </div>
+                {!isService && (
+                  <div className={`absolute top-2 right-2 badge ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </div>
+                )}
               </div>
 
               <div className="p-5">
                 <h3 className="font-bold text-surface-900 mb-1 truncate">{product.name}</h3>
-                <p className="text-brand-600 font-black text-lg mb-2">{formatPrice(product.price)}</p>
+                <p className="text-brand-600 font-black text-lg mb-2">{formatPrice(product.price)} {isService ? <span className="text-sm font-normal text-surface-500">rate</span> : ''}</p>
                 {product.description && (
                   <p className="text-surface-500 text-sm line-clamp-2 mb-4">{product.description}</p>
                 )}
