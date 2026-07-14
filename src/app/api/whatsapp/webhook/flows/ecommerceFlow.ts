@@ -135,7 +135,7 @@ export async function handleEcommerceFlow(
       if (message.image && message.image.id) {
         replyText = ''; // Handled asynchronously by AI helper
         await handlePrefetchAndAskAI(phoneNumber, Object.assign({ itemWord }, collectedData), message, session.imageGenCredits ?? 3, true);
-        return { handled: true };
+        return { handled: true, replyText: '' };
       } else {
         replyText = `Please send an actual *Photo (Image)* of the product.`;
         nextStep = 'collect_product_image';
@@ -151,18 +151,18 @@ export async function handleEcommerceFlow(
             where: { phoneNumber },
             data: { imageGenCredits: { decrement: 1 } }
           });
-          return { handled: true };
+          return { handled: true, replyText: '' };
         } else {
           replyText = `You are out of AI image credits! 😢\nUsing your original photo instead... ⏳`;
           collectedData.useAiImage = false;
           await handleAddProductFromBuffer(phoneNumber, collectedData);
-          return { handled: true };
+          return { handled: true, replyText: '' };
         }
       } else if (text === '2' || msgUpper === 'NO') {
         replyText = `Using your original photo... ⏳`;
         collectedData.useAiImage = false;
         await handleAddProductFromBuffer(phoneNumber, collectedData);
-        return { handled: true };
+        return { handled: true, replyText: '' };
       } else {
         replyText = `Please reply with 1 (Yes) or 2 (No).`;
         nextStep = 'ask_ai_image';
@@ -174,12 +174,12 @@ export async function handleEcommerceFlow(
         replyText = `Awesome! Adding product to your store... ⏳`;
         collectedData.useAiImage = true;
         await handleAddProductFromBuffer(phoneNumber, collectedData);
-        return { handled: true };
+        return { handled: true, replyText: '' };
       } else if (text === '2' || msgUpper === 'NO') {
         replyText = `No problem, using your original photo... ⏳`;
         collectedData.useAiImage = false;
         await handleAddProductFromBuffer(phoneNumber, collectedData);
-        return { handled: true };
+        return { handled: true, replyText: '' };
       } else {
         replyText = `Please reply with 1 (Yes) or 2 (No).`;
         nextStep = 'ai_image_pending';
