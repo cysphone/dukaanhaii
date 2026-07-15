@@ -18,6 +18,7 @@ import { ProductCarouselSection } from './sections/ProductCarouselSection';
 import { TestimonialsSection } from './sections/TestimonialsSection';
 import { FaqSection } from './sections/FaqSection';
 import { ContactSection } from './sections/ContactSection';
+import { ProductDetailSection } from './sections/ProductDetailSection';
 
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
@@ -52,7 +53,8 @@ const FallbackRegistry: Record<string, React.FC<any>> = {
   ProductCarouselSection,
   TestimonialsSection,
   FaqSection,
-  ContactSection
+  ContactSection,
+  ProductDetailSection
 };
 
 const TemplateSpecificRegistries: Record<string, Record<string, React.FC<any>>> = {
@@ -85,16 +87,28 @@ const TemplateSpecificRegistries: Record<string, Record<string, React.FC<any>>> 
 export default function TemplateEngine({
   business,
   template,
-  pageId
+  pageId,
+  product
 }: {
   business: any;
   template: TemplateDef;
   pageId: string;
+  product?: any;
 }) {
   const config = business.templateConfig ? (typeof business.templateConfig === 'string' ? JSON.parse(business.templateConfig) : business.templateConfig) : {};
-  const page = template.pages?.find((p: any) => p.id === pageId);
+  
+  let page = template.pages?.find((p: any) => p.id === pageId);
+  
+  if (pageId === 'system-product-detail') {
+    page = {
+      id: 'system-product-detail',
+      name: 'Product Details',
+      path: '/product/:id',
+      sections: [{ id: 'pd-1', type: 'ProductDetailSection', name: 'Product Details', fields: [] }]
+    } as any;
+  }
 
-  if (!page) return <div>Page not found in template.</div>;
+  if (!page) return <div className="p-12 text-center">Page not found in template.</div>;
 
   const theme = TemplateThemes[template.id] || FallbackTheme;
   const specificRegistry = TemplateSpecificRegistries[template.id] || {};
@@ -124,6 +138,7 @@ export default function TemplateEngine({
               data={sectionData} 
               business={business} 
               products={business.products}
+              product={product}
               templateConfig={config} 
             />
           );

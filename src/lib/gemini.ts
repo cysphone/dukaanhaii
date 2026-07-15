@@ -299,7 +299,7 @@ User Message: "${messageText}"`;
   }
 }
 export async function generateFieldContent(prompt: string, context: string): Promise<string> {
-    const fullPrompt = `Based on this business context:\n${context}\n\nTask: ${prompt}\n\nPlease output ONLY the requested text. No markdown formatting, no quotes, no extra explanations.`;
+    const fullPrompt = `Based on this business context:\n${context}\n\nTask: ${prompt}\n\nCRITICAL INSTRUCTIONS:\n- Keep the response extremely concise, punchy, and direct.\n- DO NOT write essays. Maximum length is 15-20 words unless explicitly asked for more.\n- Output ONLY the requested text. No markdown formatting, no quotes, no extra explanations.`;
     try {
         const result = await model.generateContent(fullPrompt);
         const response = await result.response;

@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
-export const RetailProductCarouselSection = ({ data, products }: { data: any, products?: any[] }) => {
+export const RetailProductCarouselSection = ({ data, products, business }: { data: any, products?: any[], business?: any }) => {
+  const storePrefix = business?.slug ? `/store/${business.slug}` : '';
   const carouselRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
@@ -36,11 +38,11 @@ export const RetailProductCarouselSection = ({ data, products }: { data: any, pr
           className="flex gap-8"
         >
           {displayProducts.map((product) => (
-            <motion.div 
-              key={product.id} 
-              className="min-w-[300px] md:min-w-[400px] flex flex-col group"
-            >
-              <div className="relative w-full aspect-[4/5] overflow-hidden rounded-[var(--radius-base)] bg-gray-100 mb-6">
+            <Link key={product.id} href={`${storePrefix}/product/${product.id}`}>
+              <motion.div 
+                className="min-w-[300px] md:min-w-[400px] flex flex-col group cursor-pointer"
+              >
+                <div className="relative w-full aspect-[4/5] overflow-hidden rounded-[var(--radius-base)] bg-gray-100 mb-6">
                 <img 
                   src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30'} 
                   alt={product.name}
@@ -59,9 +61,10 @@ export const RetailProductCarouselSection = ({ data, products }: { data: any, pr
                   </h3>
                   <p className="text-sm font-body text-gray-500 mt-1">Free Shipping</p>
                 </div>
-                <span className="text-lg font-body font-semibold text-gray-900">${product.price}</span>
-              </div>
-            </motion.div>
+                  <span className="text-lg font-body font-semibold text-gray-900">₹{product.price}</span>
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </motion.div>
       </motion.div>
