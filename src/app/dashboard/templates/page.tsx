@@ -49,8 +49,8 @@ export default function TemplatesPage() {
   };
 
   const filteredTemplates = TEMPLATES.filter(t => {
-    if (t.category !== activeCategory) return false;
-    if (activeCategory === 'ecommerce' && activeSubcategory !== 'all') {
+    if (activeCategory !== 'all' && t.category !== activeCategory) return false;
+    if (activeCategory === 'Retail' && activeSubcategory !== 'all') {
       return t.subcategory === activeSubcategory;
     }
     return true;
@@ -85,8 +85,8 @@ export default function TemplatesPage() {
         </div>
       </div>
 
-      {/* Subcategory Navigation for E-Commerce */}
-      {activeCategory === 'ecommerce' && (
+      {/* Subcategory Navigation for Retail */}
+      {activeCategory === 'Retail' && (
         <div className="flex gap-2 overflow-x-auto py-2">
           <button
             onClick={() => setActiveSubcategory('all')}
@@ -96,7 +96,7 @@ export default function TemplatesPage() {
                 : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
             }`}
           >
-            All E-Commerce
+            All Retail
           </button>
           {ECOMMERCE_SUBCATEGORIES.map(sub => (
             <button

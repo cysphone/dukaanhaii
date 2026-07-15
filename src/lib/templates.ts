@@ -3,12 +3,12 @@ import { TemplateDef } from './templateSchema';
 
 export const TEMPLATE_CATEGORIES = [
   { id: 'all', name: 'All Templates' },
-  { id: 'ecommerce', name: 'E-Commerce' },
-  { id: 'services', name: 'Services & Bookings' },
-  { id: 'portfolio', name: 'Portfolios' },
-  { id: 'landing', name: 'Landing Pages' },
+  { id: 'Retail', name: 'Retail & E-commerce' },
+  { id: 'Services', name: 'Services & Bookings' },
+  { id: 'Food', name: 'Food & Restaurants' },
+  { id: 'Medical', name: 'Medical & Health' },
 ];
-export type TemplateCategory = 'all' | 'ecommerce' | 'services' | 'portfolio' | 'landing';
+export type TemplateCategory = 'all' | 'Retail' | 'Services' | 'Food' | 'Medical';
 
 export const ECOMMERCE_SUBCATEGORIES = [
   { id: 'clothing', name: 'Clothing & Fashion' },
