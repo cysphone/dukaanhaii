@@ -21,6 +21,7 @@ import PlayfulTemplate from '@/components/templates/PlayfulTemplate';
 import ServiceModernTemplate from '@/components/templates/service-modern';
 import PortfolioCreativeTemplate from '@/components/templates/PortfolioCreativeTemplate';
 import LandingMinimalTemplate from '@/components/templates/LandingMinimalTemplate';
+import MultiPageHomeTemplate from '@/components/templates/multi-page/MultiPageHomeTemplate';
 
 interface StorePageProps {
   params: { slug: string };
@@ -107,6 +108,15 @@ export default async function StorePage({ params, searchParams }: StorePageProps
       return <PortfolioCreativeTemplate {...props} />;
     case 'landing-minimal':
       return <LandingMinimalTemplate {...props} />;
+    
+    // Multi-page niche templates
+    case 'niche-crochet':
+    case 'niche-baker':
+    case 'niche-mehndi':
+    case 'niche-boutique':
+    case 'niche-resin':
+      return <MultiPageHomeTemplate {...props} />;
+      
     default:
       return <MinimalTemplate {...props} />;
   }

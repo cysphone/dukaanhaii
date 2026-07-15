@@ -51,6 +51,7 @@ model Business {
   secondaryColor  String?
   footerText      String?
   copyrightText   String?
+  templateConfig  Json?     @default("{}")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   products        Product[]

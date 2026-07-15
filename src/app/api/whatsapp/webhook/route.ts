@@ -6,6 +6,7 @@ import { uploadImageToCloudinary } from '@/lib/cloudinary';
 import { TEMPLATES, getTemplateById } from '@/lib/templates';
 import { handleEcommerceFlow } from './flows/ecommerceFlow';
 import { handleServiceFlow } from './flows/serviceFlow';
+import { handleTemplateConfigFlow, getFirstMissingField, generatePromptForField } from './flows/templateConfigFlow';
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!;
 const WA_TOKEN = process.env.WHATSAPP_TOKEN!;
 const PHONE_ID = process.env.WHATSAPP_PHONE_ID!;
@@ -321,12 +322,14 @@ export async function POST(req: NextRequest) {
       'ask_add_product', 'collect_product_name', 'collect_product_price',
       'ask_product_desc_ai', 'ai_product_desc_pending', 'ai_product_desc_choose_option',
       'collect_product_desc', 'collect_product_image', 'ask_ai_image',
-      'ai_image_pending', 'collect_additional_images'
+      'ai_image_pending', 'collect_additional_images', 'collect_template_field'
     ];
 
     if (!replyText && flowStates.includes(session.step)) {
       let result;
-      if (isService) {
+      if (session.step === 'collect_template_field') {
+        result = await handleTemplateConfigFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message);
+      } else if (isService) {
         result = await handleServiceFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message, itemWord);
       } else {
         result = await handleEcommerceFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message, itemWord);
@@ -542,8 +545,19 @@ export async function POST(req: NextRequest) {
             where: { id: collectedData.businessId },
             data: { templateType: t.id }
           });
-          replyText = `✅ Website template successfully updated to *${t.name}*!\n\nType *MENU* to return to the main menu.`;
-          nextStep = 'completed';
+          
+          const currentConfig = existingBusiness?.templateConfig ? JSON.parse(JSON.stringify(existingBusiness.templateConfig)) : {};
+          const missing = getFirstMissingField(t, currentConfig);
+          
+          if (missing) {
+            replyText = `✅ Website template successfully updated to *${t.name}*!\n\nThis template requires some extra details.\n\n` + generatePromptForField(missing.section, missing.field);
+            nextStep = 'collect_template_field';
+            collectedData.targetSectionId = missing.section.id;
+            collectedData.targetFieldId = missing.field.id;
+          } else {
+            replyText = `✅ Website template successfully updated to *${t.name}*!\n\nType *MENU* to return to the main menu.`;
+            nextStep = 'completed';
+          }
         } else {
           replyText = `Please reply with a number from 1 to ${TEMPLATES.length}.`;
           nextStep = 'save_website_template';

@@ -28,16 +28,24 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       'name', 'description', 'whatsappNumber', 'location', 'category', 'templateType', 'customDomain',
       'vision', 'mission', 'headline', 'tagline', 'about', 'marketingDesc',
       'ctaText', 'phoneNumber', 'email', 'instagramUrl', 'facebookUrl', 'websiteUrl',
-      'primaryColor', 'secondaryColor', 'footerText', 'copyrightText'
+      'primaryColor', 'secondaryColor', 'footerText', 'copyrightText', 'templateConfig'
     ];
     
     const data: any = {};
     for (const key of allowedFields) {
       const val = formData.get(key);
       if (val !== null && val !== '') {
-        data[key] = val as string;
+        if (key === 'templateConfig') {
+          try {
+            data[key] = JSON.parse(val as string);
+          } catch(e) {
+            data[key] = val;
+          }
+        } else {
+          data[key] = val as string;
+        }
       } else if (val === '') {
-        data[key] = null;
+        data[key] = key === 'templateConfig' ? {} : null;
       }
     }
 
