@@ -23,6 +23,12 @@ export default function MultiPageLayout({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  const isLegacyHome = isHome && !template.id.startsWith('niche-');
+
+  if (isLegacyHome) {
+    return <>{children}</>;
+  }
+
   const themeVars = {
     '--theme-primary': template.colors[1],
     '--theme-secondary': template.colors[2],
