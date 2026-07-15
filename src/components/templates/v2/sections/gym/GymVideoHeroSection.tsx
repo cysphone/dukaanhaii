@@ -6,20 +6,14 @@ export const GymVideoHeroSection = ({ data }: { data: any }) => {
     <section className="relative w-full h-[100vh] flex items-center justify-center bg-black overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 w-full h-full">
-        {data.videoUrl ? (
-          <video 
-            src={data.videoUrl} 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="w-full h-full object-cover opacity-40 grayscale contrast-125"
-          />
-        ) : (
-          <div className="w-full h-full bg-[var(--color-background)] opacity-50 flex items-center justify-center">
-            <span className="text-gray-600 font-heading tracking-widest uppercase">Video Placeholder</span>
-          </div>
-        )}
+        <video 
+          src={data.videoUrl || "https://cdn.pixabay.com/video/2021/08/25/86307-593502845_large.mp4"} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="w-full h-full object-cover opacity-40 grayscale contrast-125"
+        />
       </div>
 
       {/* Extreme Contrast Overlay */}

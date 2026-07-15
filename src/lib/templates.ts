@@ -26,7 +26,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'A luxury, multi-page layout designed specifically for high-end dining, cafes, and premium food services.',
     category: 'Food',
     colors: ['#0f172a', '#eab308', '#ffffff'],
-    preview: '/templates/restaurant-v2.webp',
+    preview: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -89,6 +89,39 @@ export const TEMPLATES: TemplateDef[] = [
             ]
           }
         ]
+      },
+      {
+        id: 'page-about',
+        name: 'About',
+        path: '/about',
+        sections: [
+          {
+            id: 'about',
+            type: 'AboutSection',
+            name: 'About Section',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', aiPrompt: 'Write an inspiring title about the restaurant history' },
+              { id: 'description', label: 'Story', type: 'textarea', aiPrompt: 'Write a warm, inviting story about the restaurant origin' },
+              { id: 'image', label: 'Restaurant Photo', type: 'image' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'page-contact',
+        name: 'Contact',
+        path: '/contact',
+        sections: [
+          {
+            id: 'contact',
+            type: 'TextSection',
+            name: 'Contact Info',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', aiPrompt: 'Write a title like Visit Us or Get in Touch' },
+              { id: 'content', label: 'Details', type: 'textarea', aiPrompt: 'Write the address, hours, and phone number elegantly' }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -99,7 +132,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Aggressive, high-energy layout perfect for fitness centers, CrossFit boxes, and personal trainers.',
     category: 'Services',
     colors: ['#000000', '#dc2626', '#171717'],
-    preview: '/templates/gym-v2.webp',
+    preview: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -140,6 +173,43 @@ export const TEMPLATES: TemplateDef[] = [
             ]
           }
         ]
+      },
+      {
+        id: 'page-programs',
+        name: 'Programs',
+        path: '/programs',
+        sections: [
+          {
+            id: 'programs',
+            type: 'CardsSection',
+            name: 'Programs List',
+            fields: [
+              { id: 'title', label: 'Section Title', type: 'text', defaultValue: 'Training Programs' },
+              { id: 'card1Title', label: 'Program 1', type: 'text', defaultValue: 'Strength Training' },
+              { id: 'card1Desc', label: 'Desc 1', type: 'textarea', aiPrompt: 'Description for strength training.' },
+              { id: 'card2Title', label: 'Program 2', type: 'text', defaultValue: 'HIIT' },
+              { id: 'card2Desc', label: 'Desc 2', type: 'textarea', aiPrompt: 'Description for high intensity interval training.' },
+              { id: 'card3Title', label: 'Program 3', type: 'text', defaultValue: 'Personal Training' },
+              { id: 'card3Desc', label: 'Desc 3', type: 'textarea', aiPrompt: 'Description for 1 on 1 coaching.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'page-contact',
+        name: 'Contact',
+        path: '/contact',
+        sections: [
+          {
+            id: 'contact',
+            type: 'TextSection',
+            name: 'Contact Info',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'Find Us' },
+              { id: 'content', label: 'Details', type: 'textarea', aiPrompt: 'Gym location, hours, and contact details in an aggressive tone.' }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -150,7 +220,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'A high-conversion layout with split heroes, carousels, and minimal aesthetic for serious brands.',
     category: 'Retail',
     colors: ['#18181b', '#3b82f6', '#f8fafc'],
-    preview: '/templates/ecommerce-v2.webp',
+    preview: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -191,6 +261,47 @@ export const TEMPLATES: TemplateDef[] = [
             ]
           }
         ]
+      },
+      {
+        id: 'page-shop',
+        name: 'Shop All',
+        path: '/shop',
+        sections: [
+          {
+            id: 'shopHeader',
+            type: 'SimpleHeaderSection',
+            name: 'Shop Header',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'All Products' },
+              { id: 'subtitle', label: 'Subtitle', type: 'text', aiPrompt: 'Write a short subtitle for a retail shop page.' }
+            ]
+          },
+          {
+            id: 'productGrid',
+            type: 'ProductGridSection',
+            name: 'Product Grid',
+            fields: [
+              { id: 'layout', label: 'Grid Layout', type: 'select', options: [{label: 'Grid', value: 'grid'}, {label: 'List', value: 'list'}], defaultValue: 'grid' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'page-about',
+        name: 'About',
+        path: '/about',
+        sections: [
+          {
+            id: 'about',
+            type: 'AboutSection',
+            name: 'About Section',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'Our Story' },
+              { id: 'description', label: 'Description', type: 'textarea', aiPrompt: 'Write an inspiring story about a modern retail brand.' },
+              { id: 'image', label: 'Brand Image', type: 'image' }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -201,7 +312,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Clean, trustworthy layout for dental clinics and medical professionals.',
     category: 'Medical',
     colors: ['#0ea5e9', '#0284c7', '#ffffff'],
-    preview: '/templates/dental.webp',
+    preview: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -234,6 +345,43 @@ export const TEMPLATES: TemplateDef[] = [
             ]
           }
         ]
+      },
+      {
+        id: 'page-services',
+        name: 'Services',
+        path: '/services',
+        sections: [
+          {
+            id: 'servicesList',
+            type: 'CardsSection',
+            name: 'Services List',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'Our Treatments' },
+              { id: 'card1Title', label: 'Service 1', type: 'text', defaultValue: 'Teeth Whitening' },
+              { id: 'card1Desc', label: 'Desc 1', type: 'textarea', aiPrompt: 'Professional whitening services.' },
+              { id: 'card2Title', label: 'Service 2', type: 'text', defaultValue: 'Implants' },
+              { id: 'card2Desc', label: 'Desc 2', type: 'textarea', aiPrompt: 'Permanent tooth replacement.' },
+              { id: 'card3Title', label: 'Service 3', type: 'text', defaultValue: 'Checkups' },
+              { id: 'card3Desc', label: 'Desc 3', type: 'textarea', aiPrompt: 'Routine dental exams.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'page-contact',
+        name: 'Contact',
+        path: '/contact',
+        sections: [
+          {
+            id: 'contact',
+            type: 'TextSection',
+            name: 'Contact Info',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'Book an Appointment' },
+              { id: 'content', label: 'Details', type: 'textarea', aiPrompt: 'Clinic address and booking instructions.' }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -244,7 +392,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Professional, authoritative layout for lawyers and legal consultants.',
     category: 'Services',
     colors: ['#1e293b', '#c2410c', '#f8fafc'],
-    preview: '/templates/law.webp',
+    preview: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -273,6 +421,43 @@ export const TEMPLATES: TemplateDef[] = [
             ]
           }
         ]
+      },
+      {
+        id: 'page-practice-areas',
+        name: 'Practice Areas',
+        path: '/practice-areas',
+        sections: [
+          {
+            id: 'practices',
+            type: 'CardsSection',
+            name: 'Practice Areas',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'Areas of Practice' },
+              { id: 'card1Title', label: 'Area 1', type: 'text', defaultValue: 'Corporate Law' },
+              { id: 'card1Desc', label: 'Desc 1', type: 'textarea', aiPrompt: 'Description of corporate law.' },
+              { id: 'card2Title', label: 'Area 2', type: 'text', defaultValue: 'Real Estate' },
+              { id: 'card2Desc', label: 'Desc 2', type: 'textarea', aiPrompt: 'Description of real estate law.' },
+              { id: 'card3Title', label: 'Area 3', type: 'text', defaultValue: 'Family Law' },
+              { id: 'card3Desc', label: 'Desc 3', type: 'textarea', aiPrompt: 'Description of family law.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'page-contact',
+        name: 'Contact',
+        path: '/contact',
+        sections: [
+          {
+            id: 'contact',
+            type: 'TextSection',
+            name: 'Contact Info',
+            fields: [
+              { id: 'title', label: 'Title', type: 'text', defaultValue: 'Request a Consultation' },
+              { id: 'content', label: 'Details', type: 'textarea', aiPrompt: 'Law firm office address and contact details.' }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -283,7 +468,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Vibrant and modern layout for creative agencies and portfolios.',
     category: 'Services',
     colors: ['#d946ef', '#8b5cf6', '#000000'],
-    preview: '/templates/agency.webp',
+    preview: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -312,7 +497,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Image-focused layout for photographers and videographers.',
     category: 'Services',
     colors: ['#171717', '#a3a3a3', '#fafafa'],
-    preview: '/templates/photo.webp',
+    preview: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -351,7 +536,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Elegant e-commerce layout for fashion and apparel.',
     category: 'Retail',
     colors: ['#fdf2f8', '#be185d', '#ffffff'],
-    preview: '/templates/boutique.webp',
+    preview: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -380,7 +565,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Warm and inviting layout for bakeries and dessert shops.',
     category: 'Food',
     colors: ['#fff7ed', '#c2410c', '#ffffff'],
-    preview: '/templates/bakery.webp',
+    preview: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -418,7 +603,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Relaxing layout for hair salons, nail bars, and spas.',
     category: 'Services',
     colors: ['#fdf4ff', '#a21caf', '#ffffff'],
-    preview: '/templates/salon.webp',
+    preview: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -447,7 +632,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Sophisticated layout for interior designers and architects.',
     category: 'Services',
     colors: ['#f3f4f6', '#374151', '#ffffff'],
-    preview: '/templates/interior.webp',
+    preview: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -476,7 +661,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Trust-building layout for realtors and property agencies.',
     category: 'Services',
     colors: ['#0f172a', '#3b82f6', '#ffffff'],
-    preview: '/templates/realestate.webp',
+    preview: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -515,7 +700,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Minimalist e-commerce for furniture and home decor.',
     category: 'Retail',
     colors: ['#fafaf9', '#78716c', '#ffffff'],
-    preview: '/templates/furniture.webp',
+    preview: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -544,7 +729,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Personal brand layout for fitness coaches, consultants, and speakers.',
     category: 'Services',
     colors: ['#000000', '#facc15', '#ffffff'],
-    preview: '/templates/coach.webp',
+    preview: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',
@@ -573,7 +758,7 @@ export const TEMPLATES: TemplateDef[] = [
     desc: 'Cultural, artistic layout for Mehndi artists and event services.',
     category: 'Services',
     colors: ['#fff1f2', '#e11d48', '#ffffff'],
-    preview: '/templates/mehndi.webp',
+    preview: 'https://images.unsplash.com/photo-1583089892943-e02e52f17b50?q=80&w=800&auto=format&fit=crop',
     pages: [
       {
         id: 'page-home',

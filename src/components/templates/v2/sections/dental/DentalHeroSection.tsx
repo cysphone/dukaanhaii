@@ -5,9 +5,11 @@ export const DentalHeroSection = ({ data }: { data: any }) => {
   return (
     <section className="relative w-full min-h-[85vh] flex items-center bg-blue-50 overflow-hidden">
       <div className="absolute inset-0 w-full h-full">
-        {data.backgroundImage && (
-          <img src={data.backgroundImage} alt="Dental Hero" className="w-full h-full object-cover opacity-20" />
-        )}
+        <img 
+          src={data.backgroundImage || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=1470&auto=format&fit=crop"} 
+          alt="Dental Hero" 
+          className="w-full h-full object-cover opacity-20" 
+        />
       </div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center gap-12">

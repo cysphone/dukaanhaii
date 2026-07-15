@@ -127,7 +127,11 @@ export default function TemplatesPage() {
           >
             {/* Preview */}
             <div className="h-48 rounded-xl mb-5 relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-surface-100 to-surface-200 w-full group">
-              <span className="text-7xl group-hover:scale-110 transition-transform duration-300">{template.preview}</span>
+              {template.preview.startsWith('http') || template.preview.startsWith('/') ? (
+                <img src={template.preview} alt={template.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              ) : (
+                <span className="text-7xl group-hover:scale-110 transition-transform duration-300">{template.preview}</span>
+              )}
               <div className="absolute top-3 right-3 flex gap-1.5">
                 {template.colors.map((c, i) => (
                   <div key={i} className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm" style={{ backgroundColor: c }} />

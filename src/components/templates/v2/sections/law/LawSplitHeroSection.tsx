@@ -40,13 +40,11 @@ export const LawSplitHeroSection = ({ data }: { data: any }) => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
         >
-          {data.productImage ? (
-            <img src={data.productImage} alt="Legal Team" className="w-full h-full object-cover sepia-[0.3]" />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-400 font-heading uppercase tracking-widest">Image Placeholder</span>
-            </div>
-          )}
+          <img 
+            src={data.productImage || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=1470&auto=format&fit=crop"} 
+            alt="Legal Team" 
+            className="w-full h-full object-cover sepia-[0.3]" 
+          />
         </motion.div>
       </div>
     </section>

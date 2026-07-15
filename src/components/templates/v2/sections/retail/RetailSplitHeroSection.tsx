@@ -42,13 +42,11 @@ export const RetailSplitHeroSection = ({ data }: { data: any }) => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
         >
-          {data.productImage ? (
-            <img src={data.productImage} alt="Hero Product" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-400 font-heading tracking-widest uppercase">Image Placeholder</span>
-            </div>
-          )}
+          <img 
+            src={data.productImage || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1470&auto=format&fit=crop"} 
+            alt="Hero Product" 
+            className="w-full h-full object-cover" 
+          />
         </motion.div>
       </div>
     </section>

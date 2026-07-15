@@ -5,9 +5,11 @@ export const BakeryHeroSection = ({ data }: { data: any }) => {
   return (
     <section className="relative w-full h-[80vh] flex items-center justify-center overflow-hidden bg-amber-50">
       <div className="absolute inset-0 w-full h-full">
-        {data.backgroundImage && (
-          <img src={data.backgroundImage} alt="Bakery Hero" className="w-full h-full object-cover opacity-60" />
-        )}
+        <img 
+          src={data.backgroundImage || "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1470&auto=format&fit=crop"} 
+          alt="Bakery Hero" 
+          className="w-full h-full object-cover opacity-60" 
+        />
       </div>
 
       <div className="absolute inset-0 bg-gradient-to-b from-amber-900/40 via-amber-900/20 to-amber-50" />

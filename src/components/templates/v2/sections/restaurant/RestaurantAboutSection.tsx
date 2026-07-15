@@ -33,11 +33,11 @@ export const RestaurantAboutSection = ({ data }: { data: any }) => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            {data.image ? (
-              <img src={data.image} alt="About Us" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 font-body">Main Image</div>
-            )}
+            <img 
+              src={data.image || "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=1470&auto=format&fit=crop"} 
+              alt="About Us" 
+              className="w-full h-full object-cover" 
+            />
           </motion.div>
           
           <motion.div 

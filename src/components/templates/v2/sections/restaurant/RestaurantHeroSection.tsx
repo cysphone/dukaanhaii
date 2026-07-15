@@ -11,11 +11,11 @@ export const RestaurantHeroSection = ({ data }: { data: any }) => {
         animate={{ scale: 1, opacity: 0.6 }}
         transition={{ duration: 1.5, ease: 'easeOut' }}
       >
-        {data.backgroundImage ? (
-          <img src={data.backgroundImage} alt="Restaurant Hero" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[var(--color-primary)] to-[#1a1a1a]" />
-        )}
+        <img 
+          src={data.backgroundImage || 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1934&auto=format&fit=crop'} 
+          alt="Restaurant Hero" 
+          className="w-full h-full object-cover" 
+        />
       </motion.div>
 
       {/* Content */}
