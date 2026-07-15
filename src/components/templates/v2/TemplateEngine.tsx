@@ -16,7 +16,9 @@ import { SplitHeroSection } from './sections/SplitHeroSection';
 import { IconGridSection } from './sections/IconGridSection';
 import { ProductCarouselSection } from './sections/ProductCarouselSection';
 
-// Template Specific Components
+import { StoreHeader } from './StoreHeader';
+import { StoreFooter } from './StoreFooter';
+
 import { RestaurantHeroSection } from './sections/restaurant/RestaurantHeroSection';
 import { RestaurantAboutSection } from './sections/restaurant/RestaurantAboutSection';
 import { RestaurantFeaturedMenuSection } from './sections/restaurant/RestaurantFeaturedMenuSection';
@@ -99,22 +101,30 @@ export default function TemplateEngine({
       backgroundColor: 'var(--color-background)',
       ...theme.cssVariables
     } as React.CSSProperties}>
-      {page.sections.map((section: any) => {
-        const Component = specificRegistry[section.type] || FallbackRegistry[section.type];
-        if (!Component) {
-          return <div key={section.id} className="p-8 text-red-500">Missing Component for {section.type}</div>;
-        }
+      <StoreHeader business={business} template={template} />
+      
+      <main className="flex-grow">
+        {page.sections.map((section: any) => {
+          const Component = specificRegistry[section.type] || FallbackRegistry[section.type];
+          if (!Component) {
+            return <div key={section.id} className="p-8 text-red-500">Missing Component for {section.type}</div>;
+          }
 
-        const sectionData = config[pageId]?.[section.id] || {};
-        
-        return (
-          <Component 
-            key={section.id} 
-            data={sectionData} 
-            products={business.products} 
-          />
-        );
-      })}
+          const sectionData = config[pageId]?.[section.id] || {};
+          
+          return (
+            <Component 
+              key={section.id} 
+              data={sectionData} 
+              business={business} 
+              products={business.products}
+              templateConfig={config} 
+            />
+          );
+        })}
+      </main>
+
+      <StoreFooter business={business} />
     </div>
   );
 }

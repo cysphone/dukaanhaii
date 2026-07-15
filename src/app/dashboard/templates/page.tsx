@@ -34,18 +34,25 @@ export default function TemplatesPage() {
   const handleSave = async () => {
     if (!business) return;
     setSaving(true);
-    const formData = new FormData();
-    formData.append('templateType', selected);
 
-    const res = await fetch(`/api/business/${business.id}`, {
-      method: 'PUT',
-      body: formData,
-    });
-    if (res.ok) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+    try {
+      const res = await fetch(`/api/business/${business.id}/generate-template`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId: selected })
+      });
+      
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 5000);
+      } else {
+        alert("Failed to generate template. Please try again.");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const filteredTemplates = TEMPLATES.filter(t => {
@@ -179,14 +186,14 @@ export default function TemplatesPage() {
       {/* Save Footer (Fixed) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-surface-200 p-4 z-50 md:ml-64">
         <div className="max-w-6xl mx-auto flex items-center justify-end gap-4 pr-4">
-          {saved && <span className="text-green-600 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-lg">✓ Template applied live!</span>}
+          {saved && <span className="text-green-600 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-lg">✨ AI generated your content successfully! Check Template Config to edit.</span>}
           {!business && <span className="text-surface-400 text-sm">Create a business first to apply templates</span>}
           <button
             onClick={handleSave}
             disabled={saving || !business}
             className="btn-primary px-8 py-2.5 shadow-md hover:shadow-lg transition-all"
           >
-            {saving ? 'Saving...' : 'Apply Template'}
+            {saving ? '✨ Generating AI Content...' : 'Apply Template & Generate'}
           </button>
         </div>
       </div>
