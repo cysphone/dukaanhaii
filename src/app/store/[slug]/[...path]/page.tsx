@@ -11,6 +11,12 @@ export default async function DynamicStorePage({
 }) {
   const business = await prisma.business.findUnique({
     where: { slug: params.slug },
+    include: {
+      products: {
+        where: { inStock: true },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
   });
 
   if (!business) {
@@ -19,15 +25,14 @@ export default async function DynamicStorePage({
 
   const template = getTemplateById(business.templateType);
 
-  if (!template || !('pages' in template)) {
-    // This is a V1 template, it doesn't support dynamic paths
+  if (!template) {
     notFound();
   }
 
   const reqPath = '/' + params.path.join('/');
   
-  // Find the page in the V2 template that matches the requested path
-  const page = template.pages.find((p) => p.path === reqPath);
+  // Find the page in the template that matches the requested path
+  const page = template.pages?.find((p: any) => p.path === reqPath);
   
   if (!page) {
     notFound();
