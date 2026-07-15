@@ -1,11 +1,12 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { motion } from 'framer-motion';
 import { ShoppingCart, ArrowUpRight, Camera, MessageCircle, Globe, MapPin, Phone, Mail } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -43,6 +44,7 @@ interface TemplateProps {
 }
 
 export default function BoldTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
   const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
   const waLink = (productName?: string) =>
     `https://wa.me/${waNumber}?text=${encodeURIComponent(
@@ -73,7 +75,7 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
           <div className="flex items-center gap-8">
             <nav className="hidden lg:flex gap-8 bold-display text-2xl tracking-widest text-zinc-500">
               {products.length > 0 && <a href="#products" className="hover:text-white transition-colors">Products</a>}
-              {business.about && <a href="#story" className="hover:text-white transition-colors">Story</a>}
+              {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && <a href="#story" className="hover:text-white transition-colors">Story</a>}
             </nav>
             {waNumber && (
               <a
@@ -102,15 +104,15 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="relative z-10"
         >
-          {business.tagline && (
+          {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general')) && (
             <div className="bold-display inline-flex items-center gap-3 text-2xl px-5 py-2 rounded-sm uppercase tracking-widest mb-8 border-2 border-zinc-800" style={{ color: brandColor }}>
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-              {business.tagline}
+              {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general'))}
             </div>
           )}
           
           <h2 className="bold-display text-7xl sm:text-8xl md:text-[8rem] lg:text-[10rem] text-white leading-[0.85] mb-8 max-w-5xl uppercase mix-blend-difference">
-            {business.headline || business.name}
+            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'general')) || business.name}
           </h2>
           
           <div className="flex flex-wrap items-center gap-4 sm:gap-8 mt-12 border-t-2 border-zinc-900 pt-8">
@@ -135,14 +137,14 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
           </div>
         </motion.div>
         
-        {business.bannerUrl && (
+        {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', '')) && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.3 }}
             className="mt-20 w-full aspect-[21/9] rounded-sm overflow-hidden relative border-2 border-zinc-800"
           >
-            <img src={business.bannerUrl} alt="Hero Banner" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
+            <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', ''))} alt="Hero Banner" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60" />
           </motion.div>
         )}
@@ -239,15 +241,15 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
       )}
 
       {/* About / Story Section */}
-      {(business.about || business.mission || business.vision) && (
+      {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) || business.mission || business.vision) && (
         <section id="story" className="border-t-2 border-zinc-900 bg-zinc-950 relative overflow-hidden">
           <div className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full blur-[150px] opacity-10 pointer-events-none" style={{ backgroundColor: brandColor }} />
           
           <div className="max-w-[1400px] mx-auto px-6 py-32 grid lg:grid-cols-12 gap-16 lg:gap-8 relative z-10">
             <div className="lg:col-span-5">
               <h3 className="bold-display text-7xl md:text-8xl text-white mb-8">THE STORY.</h3>
-              {business.about && (
-                <p className="bold-body text-zinc-300 leading-relaxed text-xl mb-12">{business.about}</p>
+              {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && (
+                <p className="bold-body text-zinc-300 leading-relaxed text-xl mb-12">{(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general'))}</p>
               )}
               
               <div className="grid grid-cols-2 gap-8 border-t-2 border-zinc-900 pt-8">

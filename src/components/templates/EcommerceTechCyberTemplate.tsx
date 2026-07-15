@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Terminal, Cpu, Shield, Zap, Activity, Database, Lock, Code, Crosshair, ChevronRight, Share2, Target, Camera, MessageCircle, Globe } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function EcommerceTechCyberTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -126,7 +128,7 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
                     
                     <div className="hidden md:flex items-center gap-8 cyber-body text-sm font-semibold tracking-widest text-[#a5b4fc] uppercase">
                        {products.length > 0 && <a href="#inventory" className="hover:text-white hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.8)] transition-all flex items-center gap-2"><Database className="w-4 h-4"/> Inventory</a>}
-                       {(business.about || business.mission) && <a href="#specs" className="hover:text-white hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.8)] transition-all flex items-center gap-2"><Cpu className="w-4 h-4"/> Specs</a>}
+                       {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission) && <a href="#specs" className="hover:text-white hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.8)] transition-all flex items-center gap-2"><Cpu className="w-4 h-4"/> Specs</a>}
                     </div>
 
                     {waNumber && (
@@ -164,13 +166,13 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
                         </div>
                         
                         <h1 className="cyber-display text-5xl md:text-7xl lg:text-[5.5rem] font-black text-white mb-6 leading-[1.1] uppercase drop-shadow-[0_0_20px_rgba(139,92,246,0.4)] glitch-effect relative">
-                            {business.headline || business.name}
-                            <span className="absolute inset-0 text-[#06b6d4] -translate-x-[2px] translate-y-[2px] mix-blend-screen opacity-50 z-[-1] blur-[1px]">{business.headline || business.name}</span>
-                            <span className="absolute inset-0 text-[#8b5cf6] translate-x-[2px] -translate-y-[2px] mix-blend-screen opacity-50 z-[-1] blur-[1px]">{business.headline || business.name}</span>
+                            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || business.name}
+                            <span className="absolute inset-0 text-[#06b6d4] -translate-x-[2px] translate-y-[2px] mix-blend-screen opacity-50 z-[-1] blur-[1px]">{(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || business.name}</span>
+                            <span className="absolute inset-0 text-[#8b5cf6] translate-x-[2px] -translate-y-[2px] mix-blend-screen opacity-50 z-[-1] blur-[1px]">{(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || business.name}</span>
                         </h1>
                         
                         <p className="cyber-body text-xl md:text-2xl font-medium text-[#c7d2fe] mb-10 tracking-wide leading-relaxed border-l-2 border-[#8b5cf6] pl-6 bg-gradient-to-r from-[#8b5cf6]/10 to-transparent py-4">
-                            {business.tagline || 'Next Generation Hardware & Cybernetics. Upgrade your reality.'}
+                            {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'ecommerce')) || 'Next Generation Hardware & Cybernetics. Upgrade your reality.'}
                         </p>
 
                         <div className="flex flex-wrap gap-6">
@@ -194,7 +196,7 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
                         </div>
                     </motion.div>
                     
-                    {business.bannerUrl && (
+                    {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'electronics')) && (
                        <motion.div 
                          initial={{ opacity: 0, scale: 0.9 }}
                          animate={{ opacity: 1, scale: 1 }}
@@ -202,7 +204,7 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
                          className="relative lg:h-[600px] neon-border p-2 group"
                        >
                           <div className="absolute inset-0 bg-gradient-to-tr from-[#8b5cf6]/20 to-[#06b6d4]/20 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-700"></div>
-                          <img src={business.bannerUrl} alt="Tech Gear" className="w-full h-full object-cover filter contrast-125 saturate-150 relative z-0" />
+                          <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'electronics'))} alt="Tech Gear" className="w-full h-full object-cover filter contrast-125 saturate-150 relative z-0" />
                           
                           {/* HUD Elements */}
                           <div className="absolute top-4 left-4 z-20 flex flex-col gap-1">
@@ -222,7 +224,7 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
             </section>
 
             {/* System Specs */}
-            {(business.about || business.mission || business.vision) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission || business.vision) && (
                 <section id="specs" className="relative z-10 py-24 px-6 max-w-[1400px] mx-auto border-t border-[#8b5cf6]/20">
                     <div className="flex items-center gap-4 mb-16">
                         <Code className="w-8 h-8 text-[#06b6d4]" />
@@ -231,7 +233,7 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
                     </div>
 
                     <div className="grid lg:grid-cols-3 gap-8">
-                        {business.about && (
+                        {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) && (
                            <motion.div 
                              initial={{ opacity: 0, y: 30 }}
                              whileInView={{ opacity: 1, y: 0 }}
@@ -244,7 +246,7 @@ export default function EcommerceTechCyberTemplate({ business, products }: Templ
                                </div>
                                <p className="cyber-body text-[#c7d2fe] text-lg md:text-xl leading-[1.8] font-medium">
                                    <span className="text-[#06b6d4] mr-2 font-bold animate-pulse">&gt;_</span>
-                                   {business.about}
+                                   {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce'))}
                                </p>
                            </motion.div>
                         )}

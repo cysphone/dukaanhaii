@@ -1,10 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { Mail, Phone, MapPin, ExternalLink, Camera, MessageCircle, Globe, CheckCircle } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -42,6 +43,7 @@ interface TemplateProps {
 }
 
 export default function LandingMinimalTemplate({ business }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
   const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hi! I'm interested in learning more about ${business.name}.`)}`;
 
@@ -75,14 +77,14 @@ export default function LandingMinimalTemplate({ business }: TemplateProps) {
           transition={{ duration: 0.8 }}
           className="space-y-8"
         >
-          {business.tagline && (
+          {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'service')) && (
             <span className="inline-block px-3 py-1 bg-slate-100 rounded-md text-sm font-medium text-slate-600">
-              {business.tagline}
+              {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'service'))}
             </span>
           )}
           
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-            {business.headline || `Welcome to ${business.name}`}
+            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'service')) || `Welcome to ${business.name}`}
           </h1>
           
           <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-lg">
@@ -118,9 +120,9 @@ export default function LandingMinimalTemplate({ business }: TemplateProps) {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
         >
-          {business.bannerUrl ? (
+          {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('service', '')) ? (
             <div className="relative aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-              <img src={business.bannerUrl} alt="Hero" className="w-full h-full object-cover" />
+              <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('service', ''))} alt="Hero" className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="relative aspect-square md:aspect-[4/5] rounded-3xl bg-slate-100 overflow-hidden flex flex-col items-center justify-center p-8 text-center border border-slate-200">
@@ -151,11 +153,11 @@ export default function LandingMinimalTemplate({ business }: TemplateProps) {
       </main>
 
       {/* Feature / About Section */}
-      {business.about && (
+      {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'service')) && (
         <section className="bg-slate-50 py-24 px-6 mt-12 border-t border-slate-100">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">About {business.name}</h2>
-            <p className="text-lg text-slate-600 leading-relaxed">{business.about}</p>
+            <p className="text-lg text-slate-600 leading-relaxed">{(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'service'))}</p>
           </div>
         </section>
       )}

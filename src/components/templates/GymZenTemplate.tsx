@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Leaf, Wind, Heart, Sparkles, MapPin, Camera, MessageCircle, Globe, ArrowRight, Flower2 } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function GymZenTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -98,7 +100,7 @@ export default function GymZenTemplate({ business, products }: TemplateProps) {
                     
                     <div className="hidden md:flex items-center gap-8 zen-body text-[13px] font-semibold tracking-[0.15em] uppercase text-[#44403c]">
                        {products.length > 0 && <a href="#offerings" className="hover:text-[#065f46] transition-colors relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-full after:h-px after:bg-[#065f46] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center">Offerings</a>}
-                       {(business.about || business.mission) && <a href="#philosophy" className="hover:text-[#065f46] transition-colors relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-full after:h-px after:bg-[#065f46] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center">Philosophy</a>}
+                       {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission) && <a href="#philosophy" className="hover:text-[#065f46] transition-colors relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-full after:h-px after:bg-[#065f46] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center">Philosophy</a>}
                     </div>
 
                     {waNumber && (
@@ -140,11 +142,11 @@ export default function GymZenTemplate({ business, products }: TemplateProps) {
                         </span>
                         
                         <h1 className="zen-display text-6xl md:text-[5.5rem] text-[#1c1917] leading-[1.1] mb-8 font-medium">
-                            {business.headline || business.name}
+                            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'gym')) || business.name}
                         </h1>
                         
                         <p className="zen-body text-xl md:text-2xl text-[#57534e] max-w-2xl mx-auto leading-relaxed font-light mb-16">
-                            {business.tagline || 'Find your balance, breath, and inner peace in a sanctuary designed for your well-being.'}
+                            {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'gym')) || 'Find your balance, breath, and inner peace in a sanctuary designed for your well-being.'}
                         </p>
                         
                         {waNumber && (
@@ -168,7 +170,7 @@ export default function GymZenTemplate({ business, products }: TemplateProps) {
                     </motion.div>
                 </div>
                 
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('gym', '')) && (
                    <motion.div 
                      style={{ opacity: opacityTransform }}
                      initial={{ opacity: 0 }}
@@ -177,7 +179,7 @@ export default function GymZenTemplate({ business, products }: TemplateProps) {
                      className="absolute bottom-0 left-0 w-full h-[30vh] z-0 overflow-hidden"
                    >
                       <div className="absolute inset-0 bg-gradient-to-b from-[#FDFBF7] via-[#FDFBF7]/80 to-transparent z-10"></div>
-                      <img src={business.bannerUrl} alt="Sanctuary" className="w-full h-full object-cover object-top opacity-30 filter sepia-[0.3] blur-[2px]" />
+                      <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('gym', ''))} alt="Sanctuary" className="w-full h-full object-cover object-top opacity-30 filter sepia-[0.3] blur-[2px]" />
                    </motion.div>
                 )}
             </section>
@@ -201,7 +203,7 @@ export default function GymZenTemplate({ business, products }: TemplateProps) {
             )}
 
             {/* Philosophy */}
-            {(business.about || business.vision || business.mission) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.vision || business.mission) && (
                 <section id="philosophy" className="py-32 px-6 relative">
                     <div className="max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-20 items-center">
                         <motion.div 
@@ -221,10 +223,10 @@ export default function GymZenTemplate({ business, products }: TemplateProps) {
                             </h3>
                             
                             <p className="zen-body text-[#57534e] leading-[2] text-lg font-light">
-                                {business.about || business.mission}
+                                {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission}
                             </p>
                             
-                            {business.mission && business.about && (
+                            {business.mission && (config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) && (
                                 <div className="pt-6 border-t border-[#e7e5e4]">
                                    <h4 className="zen-body text-sm font-semibold tracking-wider uppercase text-[#292524] mb-3">Our Mission</h4>
                                    <p className="zen-body text-[#78716c] leading-relaxed font-light">{business.mission}</p>

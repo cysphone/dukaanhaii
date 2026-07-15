@@ -1,11 +1,12 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { motion } from 'framer-motion';
 import { Cpu, Terminal, Target, Crosshair, Activity, MapPin, Globe, Share2, Zap, Shield, Mail, Camera, MessageCircle } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -43,6 +44,7 @@ interface TemplateProps {
 }
 
 export default function FuturisticTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
     const waLink = (productName?: string) =>
         `https://wa.me/${waNumber}?text=${encodeURIComponent(
@@ -98,7 +100,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                     <div className="flex items-center gap-8">
                        <nav className="hidden lg:flex gap-8 cyber-body text-lg font-semibold tracking-widest text-cyan-600 uppercase">
                           {products.length > 0 && <a href="#inventory" className="hover:text-cyan-300 hover:text-shadow-[0_0_8px_#67e8f9] transition-all">Inventory</a>}
-                          {business.about && <a href="#database" className="hover:text-cyan-300 hover:text-shadow-[0_0_8px_#67e8f9] transition-all">Database</a>}
+                          {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && <a href="#database" className="hover:text-cyan-300 hover:text-shadow-[0_0_8px_#67e8f9] transition-all">Database</a>}
                        </nav>
 
                         {waNumber && (
@@ -127,14 +129,14 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5 }}
                       >
-                        {business.tagline && (
+                        {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general')) && (
                             <div className="inline-block cyber-body border border-cyan-500/30 bg-cyan-950/30 text-cyan-400 px-3 py-1 uppercase tracking-[0.4em] text-sm mb-6 flex items-center gap-2">
-                              <Activity className="w-4 h-4" /> SYS.MSG: {business.tagline}
+                              <Activity className="w-4 h-4" /> SYS.MSG: {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general'))}
                             </div>
                         )}
 
                         <h2 className="cyber-display text-5xl md:text-7xl lg:text-[6rem] font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-200 to-cyan-600 leading-[0.9] mb-8 uppercase drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-                            {business.headline || business.name}
+                            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'general')) || business.name}
                         </h2>
 
                         {business.marketingDesc && (
@@ -156,7 +158,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                       </motion.div>
                   </div>
                   
-                  {business.bannerUrl ? (
+                  {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', '')) ? (
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
                       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -164,7 +166,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                       className="relative aspect-square md:aspect-[4/3] rounded-sm overflow-hidden border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.1)] group"
                     >
                       <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay group-hover:bg-transparent transition-colors z-10" />
-                      <img src={business.bannerUrl} alt="Hero Banner" className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" />
+                      <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', ''))} alt="Hero Banner" className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" />
                       
                       {/* Decorative corner brackets */}
                       <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400 z-20 m-4 opacity-50" />
@@ -272,7 +274,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
             )}
 
             {/* Database (About/Vision/Mission) */}
-            {(business.about || business.mission || business.vision) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) || business.mission || business.vision) && (
                 <section id="database" className="py-24 px-6 max-w-7xl mx-auto relative z-10 border-t border-cyan-900/30">
                     <div className="flex items-center gap-4 mb-16">
                         <h3 className="cyber-display text-3xl text-white uppercase tracking-widest flex items-center gap-4">
@@ -283,7 +285,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                     </div>
 
                     <div className="grid lg:grid-cols-12 gap-8">
-                        {business.about && (
+                        {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && (
                             <motion.div 
                               initial={{ opacity: 0, x: -30 }}
                               whileInView={{ opacity: 1, x: 0 }}
@@ -294,7 +296,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                                 <h4 className="cyber-body text-cyan-500 text-sm uppercase tracking-[0.3em] font-bold mb-6 flex items-center gap-3">
                                   <Shield className="w-4 h-4" /> [FILE: ORIGIN.TXT]
                                 </h4>
-                                <p className="cyber-body text-cyan-50 text-xl leading-relaxed font-medium">{business.about}</p>
+                                <p className="cyber-body text-cyan-50 text-xl leading-relaxed font-medium">{(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general'))}</p>
                             </motion.div>
                         )}
 

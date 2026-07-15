@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ShoppingCart, ArrowRight, Camera, MessageCircle, Globe, Flame, Zap, Plus, X, MapPin, Mail } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function EcommerceClothingStreetTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -87,7 +89,7 @@ export default function EcommerceClothingStreetTemplate({ business, products }: 
             {/* Marquee Top */}
             <div className="bg-[#facc15] text-black py-2.5 street-display text-sm font-bold uppercase tracking-widest marquee-container border-b-4 border-black relative z-50">
                 <div className="marquee-content whitespace-nowrap">
-                    {Array(15).fill(`${business.tagline || 'LATEST DROP NOW LIVE'} /// `).join('')}
+                    {Array(15).fill(`${(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'ecommerce')) || 'LATEST DROP NOW LIVE'} /// `).join('')}
                 </div>
             </div>
 
@@ -100,7 +102,7 @@ export default function EcommerceClothingStreetTemplate({ business, products }: 
                 
                 <div className="hidden lg:flex items-center gap-8 street-body font-bold text-sm uppercase tracking-widest">
                    {products.length > 0 && <a href="#vault" className="hover:text-[#facc15] transition-colors">The Vault</a>}
-                   {(business.about || business.mission) && <a href="#manifesto" className="hover:text-[#facc15] transition-colors">Manifesto</a>}
+                   {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission) && <a href="#manifesto" className="hover:text-[#facc15] transition-colors">Manifesto</a>}
                 </div>
 
                 {waNumber && (
@@ -119,9 +121,9 @@ export default function EcommerceClothingStreetTemplate({ business, products }: 
             {/* Hero */}
             <section className="relative min-h-[90vh] flex flex-col justify-center px-6 lg:px-20 border-b-4 border-white overflow-hidden">
                 {/* Background Graphics */}
-                {business.bannerUrl ? (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'clothing')) ? (
                   <motion.div style={{ y: y1 }} className="absolute inset-0 z-0">
-                    <img src={business.bannerUrl} alt="Campaign" className="w-full h-full object-cover opacity-40 filter contrast-125 grayscale" />
+                    <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'clothing'))} alt="Campaign" className="w-full h-full object-cover opacity-40 filter contrast-125 grayscale" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                   </motion.div>
                 ) : (
@@ -148,7 +150,7 @@ export default function EcommerceClothingStreetTemplate({ business, products }: 
                       transition={{ duration: 0.6, delay: 0.2 }}
                       className="street-display text-6xl sm:text-7xl md:text-9xl lg:text-[10rem] font-black uppercase tracking-tighter leading-[0.85] text-white mb-8"
                     >
-                        {business.headline || business.name}
+                        {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || business.name}
                     </motion.h1>
 
                     <motion.div
@@ -262,7 +264,7 @@ export default function EcommerceClothingStreetTemplate({ business, products }: 
             )}
 
             {/* Brutalist About */}
-            {(business.about || business.mission || business.vision || business.marketingDesc) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission || business.vision || business.marketingDesc) && (
                 <section id="manifesto" className="py-32 px-6 lg:px-20 bg-white text-black border-b-4 border-black relative overflow-hidden">
                     <motion.div style={{ y: y2 }} className="absolute right-0 top-0 opacity-10 pointer-events-none">
                        <h2 className="street-display text-[20rem] leading-none uppercase tracking-tighter select-none">MANIFESTO</h2>
@@ -281,9 +283,9 @@ export default function EcommerceClothingStreetTemplate({ business, products }: 
                             <div className="w-full md:w-1/2">
                                 <h2 className="street-display text-6xl md:text-8xl uppercase tracking-tighter leading-none mb-8">THE LOGIC.</h2>
                                 <div className="w-full h-4 bg-black mb-10"></div>
-                                {business.about && (
+                                {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) && (
                                   <p className="street-body text-2xl font-bold leading-tight mb-12">
-                                      {business.about}
+                                      {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce'))}
                                   </p>
                                 )}
                                 

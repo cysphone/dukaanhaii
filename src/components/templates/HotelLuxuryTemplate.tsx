@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Crown, ConciergeBell, Wine, MapPin, Camera, MessageCircle, Globe, ArrowRight, Diamond, Sparkles } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function HotelLuxuryTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -99,7 +101,7 @@ export default function HotelLuxuryTemplate({ business, products }: TemplateProp
                     
                     <div className="hidden lg:flex items-center gap-12 luxury-body text-[11px] font-semibold tracking-[0.3em] uppercase text-[#AFA999]">
                         {products.length > 0 && <a href="#suites" className="hover:text-[#D4AF37] transition-colors relative after:content-[''] after:absolute after:-bottom-3 after:left-0 after:w-full after:h-px after:bg-[#D4AF37] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center">Accommodations</a>}
-                        {(business.about || business.mission) && <a href="#experience" className="hover:text-[#D4AF37] transition-colors relative after:content-[''] after:absolute after:-bottom-3 after:left-0 after:w-full after:h-px after:bg-[#D4AF37] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center">The Experience</a>}
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) || business.mission) && <a href="#experience" className="hover:text-[#D4AF37] transition-colors relative after:content-[''] after:absolute after:-bottom-3 after:left-0 after:w-full after:h-px after:bg-[#D4AF37] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center">The Experience</a>}
                     </div>
 
                     {waNumber && (
@@ -120,8 +122,8 @@ export default function HotelLuxuryTemplate({ business, products }: TemplateProp
             {/* Hero */}
             <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 overflow-hidden">
                 <motion.div style={{ y: yTransform }} className="absolute inset-0 z-0">
-                   {business.bannerUrl ? (
-                      <img src={business.bannerUrl} alt="Luxury Hotel" className="w-full h-full object-cover filter contrast-125 brightness-75 sepia-[0.2]" />
+                   {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('hotel', '')) ? (
+                      <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('hotel', ''))} alt="Luxury Hotel" className="w-full h-full object-cover filter contrast-125 brightness-75 sepia-[0.2]" />
                    ) : (
                       <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1542314831-c6a4d14d8373?q=80&w=2600&auto=format&fit=crop')] bg-cover bg-center filter grayscale blend-lighten"></div>
                    )}
@@ -151,11 +153,11 @@ export default function HotelLuxuryTemplate({ business, products }: TemplateProp
                         </div>
 
                         <h1 className="luxury-display text-5xl md:text-7xl lg:text-[7rem] text-white font-normal mb-10 leading-[1.05] tracking-tight drop-shadow-2xl">
-                            {business.headline || business.name}
+                            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'hotel')) || business.name}
                         </h1>
 
                         <p className="luxury-display italic text-xl md:text-3xl text-[#E0D8C8] max-w-3xl mx-auto font-light leading-relaxed mb-16 opacity-90">
-                            "{business.tagline || 'Experience the pinnacle of luxury, refined comfort, and uncompromised elegance.'}"
+                            "{(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'hotel')) || 'Experience the pinnacle of luxury, refined comfort, and uncompromised elegance.'}"
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center gap-8">
@@ -197,7 +199,7 @@ export default function HotelLuxuryTemplate({ business, products }: TemplateProp
             </section>
 
             {/* The Story */}
-            {(business.about || business.mission || business.marketingDesc) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) || business.mission || business.marketingDesc) && (
                 <section id="experience" className="py-32 px-6 relative z-10">
                     <div className="max-w-[1200px] mx-auto">
                         {business.marketingDesc && (
@@ -241,7 +243,7 @@ export default function HotelLuxuryTemplate({ business, products }: TemplateProp
                             >
                                 <div className="pl-6 md:pl-12 border-l border-[#D4AF37]/20">
                                    <p className="luxury-display text-xl md:text-2xl leading-relaxed text-[#AFA999] font-light mb-10">
-                                       {business.about || business.mission}
+                                       {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) || business.mission}
                                    </p>
                                    
                                    {business.vision && (

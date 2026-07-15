@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Dumbbell, Trophy, Zap, Activity, ChevronRight, CheckCircle2, MapPin, Camera, MessageCircle, Globe, ArrowUpRight } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function GymModernTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -84,7 +86,7 @@ export default function GymModernTemplate({ business, products }: TemplateProps)
                     
                     <div className="hidden lg:flex items-center gap-10 font-bold text-sm tracking-wide text-zinc-400">
                         {products.length > 0 && <a href="#memberships" className="hover:text-white transition-colors">Memberships</a>}
-                        {(business.about || business.mission) && <a href="#facility" className="hover:text-white transition-colors">Facility</a>}
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission) && <a href="#facility" className="hover:text-white transition-colors">Facility</a>}
                     </div>
 
                     {waNumber && (
@@ -115,9 +117,9 @@ export default function GymModernTemplate({ business, products }: TemplateProps)
                   className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-600 rounded-full mix-blend-overlay filter blur-[120px] opacity-10 pointer-events-none"
                 />
                 
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('gym', '')) && (
                   <motion.div style={{ y: yTransform }} className="absolute inset-0 z-0">
-                     <img src={business.bannerUrl} alt="Gym Facility" className="w-full h-full object-cover opacity-30 grayscale filter contrast-125 mix-blend-luminosity" />
+                     <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('gym', ''))} alt="Gym Facility" className="w-full h-full object-cover opacity-30 grayscale filter contrast-125 mix-blend-luminosity" />
                      <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent"></div>
                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
                   </motion.div>
@@ -135,11 +137,11 @@ export default function GymModernTemplate({ business, products }: TemplateProps)
                         </div>
                         
                         <h1 className="text-6xl md:text-8xl lg:text-[6.5rem] font-black text-white leading-[0.9] tracking-tighter mb-8">
-                            {business.headline || business.name}
+                            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'gym')) || business.name}
                         </h1>
                         
                         <p className="text-xl md:text-2xl text-zinc-400 font-medium max-w-2xl mb-12 leading-relaxed">
-                            {business.tagline || 'Elevate your fitness with modern technology, expert training, and an elite community.'}
+                            {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'gym')) || 'Elevate your fitness with modern technology, expert training, and an elite community.'}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-6">
@@ -176,7 +178,7 @@ export default function GymModernTemplate({ business, products }: TemplateProps)
             )}
 
             {/* Content Highlights */}
-            {(business.about || business.mission) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission) && (
                 <section id="facility" className="py-32 modern-font relative z-10">
                     <div className="max-w-[1400px] mx-auto px-6">
                         <div className="grid lg:grid-cols-2 gap-20 items-center">
@@ -189,7 +191,7 @@ export default function GymModernTemplate({ business, products }: TemplateProps)
                                 <span className="text-[#facc15] font-bold tracking-widest uppercase text-sm mb-4 block">The Facility</span>
                                 <h2 className="text-5xl md:text-6xl font-black mb-8 text-white leading-tight">Redefining the <br/>Fitness Experience</h2>
                                 <p className="text-zinc-400 text-lg md:text-xl leading-relaxed font-medium mb-12">
-                                    {business.about || business.mission}
+                                    {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission}
                                 </p>
                                 
                                 <div className="space-y-6">
@@ -200,7 +202,7 @@ export default function GymModernTemplate({ business, products }: TemplateProps)
                                            <p className="text-zinc-300 font-medium leading-relaxed">{business.vision}</p>
                                        </div>
                                    )}
-                                   {business.mission && business.about && (
+                                   {business.mission && (config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) && (
                                        <div className="p-8 rounded-3xl glass-panel border border-zinc-800/50 relative overflow-hidden group">
                                            <div className="absolute left-0 top-0 w-1 h-full bg-white"></div>
                                            <h3 className="text-white font-black uppercase tracking-wider mb-3 text-sm">Our Mission</h3>

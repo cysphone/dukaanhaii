@@ -20,9 +20,7 @@ export default async function StoreLayout({
 
   const template = getTemplateById(business.templateType);
 
-  const isMultiPage = template && template.id.startsWith('niche-');
-
-  if (isMultiPage) {
+  if (template) {
     return (
       <MultiPageLayout business={business} template={template}>
         {children}

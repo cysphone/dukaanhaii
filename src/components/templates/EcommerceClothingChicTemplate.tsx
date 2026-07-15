@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag, ArrowRight, Camera, MessageCircle, Globe, MapPin, Mail, Phone } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function EcommerceClothingChicTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -68,7 +70,7 @@ export default function EcommerceClothingChicTemplate({ business, products }: Te
                 <div className="max-w-[1400px] mx-auto px-6 py-6 flex items-center justify-between">
                     <div className="hidden md:flex items-center gap-10 chic-body text-[10px] font-medium tracking-[0.25em] uppercase text-gray-500">
                         {products.length > 0 && <a href="#collection" className="hover:text-black transition-colors relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-full after:h-px after:bg-black after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">COLLECTION</a>}
-                        {(business.about || business.mission) && <a href="#house" className="hover:text-black transition-colors relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-full after:h-px after:bg-black after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">THE HOUSE</a>}
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission) && <a href="#house" className="hover:text-black transition-colors relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-full after:h-px after:bg-black after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">THE HOUSE</a>}
                     </div>
 
                     <div className="chic-display text-2xl md:text-3xl font-normal tracking-tight text-center flex-1 md:flex-none">
@@ -93,20 +95,20 @@ export default function EcommerceClothingChicTemplate({ business, products }: Te
 
             {/* Edgy Lookbook Hero */}
             <section className="relative h-screen flex items-center justify-center overflow-hidden bg-[#E8E6E1]">
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'clothing')) && (
                   <motion.div 
                     initial={{ scale: 1.1, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 2, ease: "easeOut" }}
                     className="absolute inset-0 z-0"
                   >
-                     <img src={business.bannerUrl} alt="Campaign" className="w-full h-full object-cover object-top grayscale hover:grayscale-0 transition-all duration-[2s]" />
+                     <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'clothing'))} alt="Campaign" className="w-full h-full object-cover object-top grayscale hover:grayscale-0 transition-all duration-[2s]" />
                      <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
                   </motion.div>
                 )}
                 
                 {/* Abstract overlay if no banner */}
-                {!business.bannerUrl && (
+                {!(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'clothing')) && (
                   <div className="absolute inset-0 z-0 bg-[#F5F3ED]">
                       <div className="absolute top-0 right-0 w-1/2 h-full bg-[#EAE8E2] transform -skew-x-12 origin-top mix-blend-multiply"></div>
                   </div>
@@ -123,10 +125,10 @@ export default function EcommerceClothingChicTemplate({ business, products }: Te
                           {business.category || 'NEW COLLECTION'}
                       </span>
                       <h1 className="chic-display text-5xl md:text-7xl lg:text-8xl font-normal leading-none tracking-[-0.02em] mb-8">
-                          {business.headline || 'DEFINED BY ELEGANCE'}
+                          {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || 'DEFINED BY ELEGANCE'}
                       </h1>
                       <p className="chic-body max-w-lg mx-auto text-base text-gray-600 font-light mb-12 leading-relaxed">
-                          {business.tagline || 'Curating minimalism, sophisticated lines, and modern silhouettes for the contemporary wardrobe.'}
+                          {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'ecommerce')) || 'Curating minimalism, sophisticated lines, and modern silhouettes for the contemporary wardrobe.'}
                       </p>
 
                       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 chic-body text-[10px] font-medium tracking-[0.2em] uppercase">
@@ -210,7 +212,7 @@ export default function EcommerceClothingChicTemplate({ business, products }: Te
             )}
 
             {/* Editorial About Section */}
-            {(business.about || business.mission || business.vision) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission || business.vision) && (
                 <section id="house" className="bg-[#F5F3ED] py-32 md:py-40 px-6 border-y border-black/5 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-[#E8E6E1] rounded-full blur-[100px] pointer-events-none opacity-50"></div>
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#EAE8E2] rounded-full blur-[100px] pointer-events-none opacity-50"></div>
@@ -231,9 +233,9 @@ export default function EcommerceClothingChicTemplate({ business, products }: Te
                                 </h2>
                             )}
                             
-                            {business.about && (
+                            {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) && (
                                 <p className="chic-body text-gray-600 leading-[1.8] font-light text-lg md:text-xl mb-10 max-w-2xl">
-                                    {business.about}
+                                    {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce'))}
                                 </p>
                             )}
 

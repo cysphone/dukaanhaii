@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ShoppingBag, ChevronRight, Apple, Globe, Camera, MessageCircle, Phone, Mail, MapPin } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function EcommerceTechGadgetTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -90,7 +92,7 @@ export default function EcommerceTechGadgetTemplate({ business, products }: Temp
                     <div className="hidden md:flex gap-8">
                         <a href="#store" className="hover:text-white transition-colors">Store</a>
                         <a href="#mac" className="hover:text-white transition-colors">Categories</a>
-                        {(business.about) && <a href="#about" className="hover:text-white transition-colors">About</a>}
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce'))) && <a href="#about" className="hover:text-white transition-colors">About</a>}
                         {waNumber && <a href={waLink()} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Support</a>}
                     </div>
 
@@ -113,10 +115,10 @@ export default function EcommerceTechGadgetTemplate({ business, products }: Temp
                         {business.category || 'New Arrival'}
                     </h2>
                     <h1 className="tech-font text-6xl md:text-[5.5rem] font-bold tracking-tighter mb-4 leading-none text-[#1D1D1F]">
-                        {business.headline || business.name}
+                        {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || business.name}
                     </h1>
                     <p className="tech-font text-2xl md:text-3xl text-[#1D1D1F] font-normal max-w-2xl mx-auto mb-10 tracking-tight leading-snug">
-                        {business.tagline || 'Pro capabilities. Unprecedented performance. Beautiful design.'}
+                        {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'ecommerce')) || 'Pro capabilities. Unprecedented performance. Beautiful design.'}
                     </p>
                     <div className="flex justify-center items-center gap-6 tech-font text-[17px]">
                         <a 
@@ -140,12 +142,12 @@ export default function EcommerceTechGadgetTemplate({ business, products }: Temp
                     </div>
                 </motion.div>
                 
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'electronics')) && (
                   <motion.div 
                     style={{ scale }}
                     className="w-full max-w-[1200px] mt-auto relative z-0"
                   >
-                     <img src={business.bannerUrl} alt="Hero Product" className="w-full h-auto object-cover rounded-t-[3rem] shadow-2xl" />
+                     <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'electronics'))} alt="Hero Product" className="w-full h-auto object-cover rounded-t-[3rem] shadow-2xl" />
                      {/* Gradient fade into next section */}
                      <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#F5F5F7] to-transparent"></div>
                   </motion.div>
@@ -244,7 +246,7 @@ export default function EcommerceTechGadgetTemplate({ business, products }: Temp
             )}
 
             {/* Specs / Info Panel */}
-            {(business.about || business.mission) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission) && (
                 <section id="about" className="py-32 bg-black text-white px-4 md:px-12 antialiased overflow-hidden relative">
                     {/* Background glow */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
@@ -259,7 +261,7 @@ export default function EcommerceTechGadgetTemplate({ business, products }: Temp
                         >
                            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 leading-none">Innovation <br/>everywhere.</h2>
                            <p className="text-2xl md:text-3xl text-[#86868B] font-medium leading-relaxed tracking-tight">
-                               {business.about || business.mission}
+                               {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission}
                            </p>
                         </motion.div>
                         

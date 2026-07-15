@@ -1,11 +1,12 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { motion } from 'framer-motion';
 import { Star, Heart, MapPin, Camera, MessageCircle, Globe, Send, ShoppingBag } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -43,6 +44,7 @@ interface TemplateProps {
 }
 
 export default function PlayfulTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
     const waLink = (productName?: string) =>
         `https://wa.me/${waNumber}?text=${encodeURIComponent(
@@ -105,7 +107,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                     <div className="flex items-center gap-6">
                         <nav className="hidden lg:flex gap-6 playful-body font-bold text-lg text-[#2D3142]">
                            {products.length > 0 && <a href="#goodies" className="hover:text-[#FF6B6B] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-1 after:bg-[#FF6B6B] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">Goodies</a>}
-                           {business.about && <a href="#vibes" className="hover:text-[#FF6B6B] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-1 after:bg-[#FF6B6B] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">Vibes</a>}
+                           {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && <a href="#vibes" className="hover:text-[#FF6B6B] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-1 after:bg-[#FF6B6B] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">Vibes</a>}
                         </nav>
 
                         {waNumber && (
@@ -130,9 +132,9 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
                 >
-                  {business.tagline && (
+                  {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general')) && (
                       <div className="inline-block px-8 py-3 bg-[#FFE66D] text-[#2D3142] font-black playful-body text-xl rounded-full brutal-border shadow-[4px_4px_0px_#2D3142] -rotate-3 mb-12 hover:rotate-0 transition-transform cursor-default">
-                          ✨ {business.tagline} ✨
+                          ✨ {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general'))} ✨
                       </div>
                   )}
                 </motion.div>
@@ -144,7 +146,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                   className="playful-display text-6xl md:text-8xl lg:text-[7rem] font-black text-[#2D3142] leading-[1.05] mb-10 max-w-5xl mx-auto"
                   style={{ textShadow: '4px 4px 0px #FFD93D' }}
                 >
-                    {business.headline || business.name}
+                    {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'general')) || business.name}
                 </motion.h2>
                 
                 <motion.div
@@ -159,14 +161,14 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                   )}
                 </motion.div>
                 
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', '')) && (
                   <motion.div 
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.7 }}
                     className="w-full mt-24 aspect-[21/9] rounded-[3rem] overflow-hidden brutal-border brutal-shadow bg-white p-4 rotate-1 hover:rotate-0 transition-transform"
                   >
-                    <img src={business.bannerUrl} alt="Hero Banner" className="w-full h-full object-cover rounded-[2rem] brutal-border" />
+                    <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', ''))} alt="Hero Banner" className="w-full h-full object-cover rounded-[2rem] brutal-border" />
                   </motion.div>
                 )}
             </section>
@@ -255,7 +257,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
             )}
 
             {/* Vibes (About/Mission/Vision) */}
-            {(business.about || business.mission || business.vision) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) || business.mission || business.vision) && (
                 <section id="vibes" className="py-32 px-6 relative z-10 bg-[#FFF4E6]">
                     <div className="max-w-7xl mx-auto">
                         <motion.div 
@@ -270,7 +272,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                         </motion.div>
 
                         <div className="grid lg:grid-cols-3 gap-10">
-                            {business.about && (
+                            {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && (
                                 <motion.div 
                                   initial={{ opacity: 0, y: 50 }}
                                   whileInView={{ opacity: 1, y: 0 }}
@@ -281,7 +283,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                                         <Heart className="w-10 h-10 text-[#FF6B6B] fill-[#FF6B6B]" />
                                     </div>
                                     <h4 className="playful-display text-5xl text-[#2D3142] font-black mb-6">Our Story</h4>
-                                    <p className="playful-body text-[#2D3142] font-bold text-2xl leading-relaxed">{business.about}</p>
+                                    <p className="playful-body text-[#2D3142] font-bold text-2xl leading-relaxed">{(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general'))}</p>
                                 </motion.div>
                             )}
                             

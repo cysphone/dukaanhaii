@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Leaf, ShoppingBasket, MapPin, Camera, MessageCircle, Globe, ArrowRight, Sun, Droplets, CheckCircle2, ChevronRight, Phone, Mail, Target } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function EcommerceFoodFreshTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -84,7 +86,7 @@ export default function EcommerceFoodFreshTemplate({ business, products }: Templ
                     
                     <div className="hidden lg:flex items-center gap-8 fresh-body font-bold text-[#4B5543]">
                        {products.length > 0 && <a href="#market" className="hover:text-[#65a30d] transition-colors flex items-center gap-2"><ShoppingBasket className="w-4 h-4"/> Market</a>}
-                       {(business.about || business.mission) && <a href="#farm" className="hover:text-[#65a30d] transition-colors flex items-center gap-2"><Sun className="w-4 h-4"/> Our Farm</a>}
+                       {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission) && <a href="#farm" className="hover:text-[#65a30d] transition-colors flex items-center gap-2"><Sun className="w-4 h-4"/> Our Farm</a>}
                     </div>
 
                     {waNumber && (
@@ -128,11 +130,11 @@ export default function EcommerceFoodFreshTemplate({ business, products }: Templ
                       </div>
                       
                       <h1 className="fresh-display text-6xl md:text-7xl lg:text-[5.5rem] font-black text-[#2C3322] leading-[1.1] mb-8">
-                          {business.headline || business.name}
+                          {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || business.name}
                       </h1>
                       
                       <p className="fresh-body text-xl text-[#4B5543] font-medium mb-12 leading-relaxed">
-                          {business.tagline || 'Farm-fresh quality delivered straight to your door. Taste the difference of organic goodness every single day.'}
+                          {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'ecommerce')) || 'Farm-fresh quality delivered straight to your door. Taste the difference of organic goodness every single day.'}
                       </p>
 
                       <div className="flex flex-wrap gap-4">
@@ -158,7 +160,7 @@ export default function EcommerceFoodFreshTemplate({ business, products }: Templ
                       </div>
                   </motion.div>
                   
-                  {business.bannerUrl && (
+                  {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'grocery')) && (
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -166,7 +168,7 @@ export default function EcommerceFoodFreshTemplate({ business, products }: Templ
                       className="relative lg:h-[700px]"
                     >
                        <div className="absolute inset-0 bg-[#EAF3DE] organic-blob-2 scale-105 opacity-50 blur-xl"></div>
-                       <img src={business.bannerUrl} alt="Fresh Produce" className="w-full h-full object-cover organic-blob-1 border-8 border-white shadow-2xl relative z-10" />
+                       <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'grocery'))} alt="Fresh Produce" className="w-full h-full object-cover organic-blob-1 border-8 border-white shadow-2xl relative z-10" />
                        
                        {/* Floating Elements */}
                        <motion.div 
@@ -198,7 +200,7 @@ export default function EcommerceFoodFreshTemplate({ business, products }: Templ
             </section>
 
             {/* Fresh About */}
-            {(business.about || business.mission) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission) && (
                 <section id="farm" className="py-32 px-6 bg-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#FAFAFA] rounded-full -translate-y-1/2 translate-x-1/4 -z-10"></div>
                     
@@ -233,7 +235,7 @@ export default function EcommerceFoodFreshTemplate({ business, products }: Templ
                             </div>
                             
                             <p className="fresh-body text-xl text-[#4B5543] font-medium leading-relaxed max-w-2xl">
-                                {business.about || business.mission}
+                                {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.mission}
                             </p>
                             
                             <div className="grid sm:grid-cols-2 gap-8 pt-8 border-t border-[#f3f4f6]">

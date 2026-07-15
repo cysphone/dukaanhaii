@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Dumbbell, Target, Zap, Activity, Flame, ChevronRight, Check, MapPin, Camera, MessageCircle, Globe, ArrowRight } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function GymPowerTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -97,7 +99,7 @@ export default function GymPowerTemplate({ business, products }: TemplateProps) 
                     
                     <div className="hidden lg:flex items-center gap-10 power-body text-2xl tracking-widest text-zinc-400">
                         {products.length > 0 && <a href="#plans" className="hover:text-white hover:text-shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all">TRAINING PLANS</a>}
-                        {(business.about || business.mission) && <a href="#grind" className="hover:text-white hover:text-shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all">THE GRIND</a>}
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission) && <a href="#grind" className="hover:text-white hover:text-shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all">THE GRIND</a>}
                     </div>
 
                     {waNumber && (
@@ -122,9 +124,9 @@ export default function GymPowerTemplate({ business, products }: TemplateProps) 
                 <div className="absolute inset-0 opacity-10 z-0 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]"></div>
                 
                 {/* Background Banner */}
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('gym', '')) && (
                   <div className="absolute inset-0 z-0">
-                     <img src={business.bannerUrl} alt="Gym Intensity" className="w-full h-full object-cover opacity-40 grayscale contrast-150 mix-blend-overlay" />
+                     <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('gym', ''))} alt="Gym Intensity" className="w-full h-full object-cover opacity-40 grayscale contrast-150 mix-blend-overlay" />
                      <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/80 to-[#111]/40"></div>
                   </div>
                 )}
@@ -144,11 +146,11 @@ export default function GymPowerTemplate({ business, products }: TemplateProps) 
                         </div>
                         
                         <h1 className="power-display text-7xl md:text-[8rem] lg:text-[10rem] italic font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-500 tracking-tighter leading-[0.85] mb-8 drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] px-4">
-                            {business.headline || business.name}
+                            {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'gym')) || business.name}
                         </h1>
                         
                         <p className="power-display font-black italic text-zinc-400 text-xl md:text-3xl max-w-4xl mx-auto tracking-widest mb-16 px-4">
-                            {business.tagline || 'UNLEASH YOUR ULTIMATE POWER'}
+                            {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'gym')) || 'UNLEASH YOUR ULTIMATE POWER'}
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center power-body">
@@ -198,7 +200,7 @@ export default function GymPowerTemplate({ business, products }: TemplateProps) 
             )}
 
             {/* About Section */}
-            {(business.about || business.mission) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission) && (
                 <section id="grind" className="py-32 px-6 max-w-[1400px] mx-auto relative z-10">
                     <h2 className="power-display text-[6rem] md:text-[10rem] font-black italic text-zinc-900 absolute -top-10 right-0 -z-10 tracking-tighter select-none whitespace-nowrap overflow-hidden opacity-50">
                         THE GRIND
@@ -215,7 +217,7 @@ export default function GymPowerTemplate({ business, products }: TemplateProps) 
                                 Our Mission
                             </h3>
                             <p className="text-zinc-300 text-xl md:text-2xl leading-relaxed font-sans font-medium">
-                                {business.about || business.mission}
+                                {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'gym')) || business.mission}
                             </p>
                             
                             <div className="mt-12 grid grid-cols-2 gap-6">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { AnimatePresence } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import { ServiceModernTemplateProps, PageType } from './types';
@@ -11,6 +12,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 
 export default function ServiceModernTemplate({ business, products }: ServiceModernTemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
   const [activePage, setActivePage] = useState<PageType>('home');
   const [selectedService, setSelectedService] = useState<ServiceModernTemplateProps['products'][0] | null>(null);
 

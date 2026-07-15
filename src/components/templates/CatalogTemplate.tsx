@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, MapPin, Search, ChevronRight, MessageCircle, Star, Heart, Camera, Globe, Target } from 'lucide-react';
 import { useState } from 'react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function CatalogTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
   const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
   const waLink = (productName?: string) =>
     `https://wa.me/${waNumber}?text=${encodeURIComponent(
@@ -77,9 +79,9 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
           
-          {business.bannerUrl && (
+          {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', '')) && (
             <div className="absolute inset-0 z-0 opacity-20 mix-blend-overlay pointer-events-none">
-               <img src={business.bannerUrl} alt="" className="w-full h-full object-cover" />
+               <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', ''))} alt="" className="w-full h-full object-cover" />
             </div>
           )}
 
@@ -116,11 +118,11 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              {business.headline && (
-                <h2 className="text-[1.35rem] font-extrabold leading-tight mb-2 drop-shadow-md">{business.headline}</h2>
+              {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'general')) && (
+                <h2 className="text-[1.35rem] font-extrabold leading-tight mb-2 drop-shadow-md">{(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'general'))}</h2>
               )}
-              {business.tagline && (
-                <p className="text-white/80 text-sm font-semibold leading-relaxed">{business.tagline}</p>
+              {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general')) && (
+                <p className="text-white/80 text-sm font-semibold leading-relaxed">{(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general'))}</p>
               )}
             </motion.div>
           </div>
@@ -237,13 +239,13 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
                   </div>
                 )}
 
-                {business.about && (
+                {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && (
                   <div className="bg-zinc-50 rounded-3xl p-6 border border-zinc-100">
                     <h4 className="font-black text-zinc-900 mb-3 text-lg flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">👋</div>
                       Our Story
                     </h4>
-                    <p className="text-zinc-600 text-sm leading-loose font-medium">{business.about}</p>
+                    <p className="text-zinc-600 text-sm leading-loose font-medium">{(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general'))}</p>
                   </div>
                 )}
 

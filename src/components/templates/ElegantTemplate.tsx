@@ -1,11 +1,12 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { motion } from 'framer-motion';
 import { Diamond, MapPin, Camera, MessageCircle, Globe, Mail, Phone, ArrowRight } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -43,6 +44,7 @@ interface TemplateProps {
 }
 
 export default function ElegantTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
     const waLink = (productName?: string) =>
         `https://wa.me/${waNumber}?text=${encodeURIComponent(
@@ -68,9 +70,9 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                         <h1 className="elegant-display text-2xl font-semibold tracking-wide text-[#2C2A29]">
                             {business.logoUrl ? <img src={business.logoUrl} alt={business.name} className="h-10 w-auto object-contain" /> : business.name}
                         </h1>
-                        {business.tagline && (
+                        {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general')) && (
                             <span className="elegant-body text-[10px] uppercase tracking-[0.3em] text-[#8B8682] mt-1 hidden sm:block">
-                                {business.tagline}
+                                {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'general'))}
                             </span>
                         )}
                     </div>
@@ -78,7 +80,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                     <div className="flex items-center gap-8">
                         <div className="hidden md:flex gap-8 elegant-body text-xs tracking-widest uppercase text-[#8B8682]">
                             {products.length > 0 && <a href="#collection" className="hover:text-[#D4AF37] transition-colors">Collection</a>}
-                            {business.about && <a href="#philosophy" className="hover:text-[#D4AF37] transition-colors">Philosophy</a>}
+                            {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && <a href="#philosophy" className="hover:text-[#D4AF37] transition-colors">Philosophy</a>}
                             <a href="#inquiry" className="hover:text-[#D4AF37] transition-colors">Inquiry</a>
                         </div>
                         {waNumber && (
@@ -107,7 +109,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                         {business.category || 'Luxury Collection'}
                     </span>
                     <h2 className="elegant-display text-5xl md:text-7xl lg:text-8xl font-normal leading-tight text-[#2C2A29] mb-12 max-w-4xl mx-auto">
-                        {business.headline || business.name}
+                        {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'general')) || business.name}
                     </h2>
                     
                     <motion.div 
@@ -124,14 +126,14 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                     )}
                 </motion.div>
                 
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', '')) && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1, delay: 0.8 }}
                     className="w-full mt-24 aspect-video rounded-sm overflow-hidden"
                   >
-                    <img src={business.bannerUrl} alt="Hero" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
+                    <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('general', ''))} alt="Hero" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
                   </motion.div>
                 )}
             </section>
@@ -214,7 +216,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
             )}
 
             {/* Philosophy (About/Mission/Vision) */}
-            {(business.about || business.mission || business.vision) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) || business.mission || business.vision) && (
                 <section id="philosophy" className="py-32 px-6 bg-[#F5F2EA] border-y border-[#E8DCC4]">
                     <div className="max-w-6xl mx-auto">
                         <motion.div 
@@ -228,7 +230,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                         </motion.div>
 
                         <div className="grid lg:grid-cols-12 gap-16 items-start">
-                            {business.about && (
+                            {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general')) && (
                                 <motion.div 
                                   initial={{ opacity: 0, x: -20 }}
                                   whileInView={{ opacity: 1, x: 0 }}
@@ -237,7 +239,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                                 >
                                     <span className="elegant-body text-xs tracking-[0.2em] uppercase text-[#D4AF37] mb-6 block">The Heritage</span>
                                     <p className="elegant-display text-3xl leading-relaxed text-[#2C2A29]">
-                                        {business.about}
+                                        {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'general'))}
                                     </p>
                                 </motion.div>
                             )}

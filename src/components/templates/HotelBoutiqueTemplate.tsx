@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Compass, Key, BedDouble, Wine, MapPin, Camera, MessageCircle, Globe, ArrowRight, Stars, Clock } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function HotelBoutiqueTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -109,9 +111,9 @@ export default function HotelBoutiqueTemplate({ business, products }: TemplatePr
 
             {/* Hero Content */}
             <section className="relative min-h-[75vh] flex flex-col items-center justify-center px-6 py-20 text-center">
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('hotel', '')) && (
                   <motion.div style={{ y: yTransform }} className="absolute inset-0 z-0 opacity-40">
-                     <img src={business.bannerUrl} alt="Hotel Atmosphere" className="w-full h-full object-cover sepia-[0.3]" />
+                     <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('hotel', ''))} alt="Hotel Atmosphere" className="w-full h-full object-cover sepia-[0.3]" />
                      <div className="absolute inset-0 bg-gradient-to-b from-[#FDFBF7] via-transparent to-[#FDFBF7]"></div>
                   </motion.div>
                 )}
@@ -129,7 +131,7 @@ export default function HotelBoutiqueTemplate({ business, products }: TemplatePr
                     </div>
 
                     <h2 className="boutique-display text-3xl md:text-5xl leading-[1.3] text-[#3A3026] mb-8 italic font-normal text-balance">
-                        "{business.headline || business.tagline || 'A curated experience of comfort and distinctive style.'}"
+                        "{(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'hotel')) || (config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'hotel')) || 'A curated experience of comfort and distinctive style.'}"
                     </h2>
                     
                     {waNumber && (
@@ -150,10 +152,10 @@ export default function HotelBoutiqueTemplate({ business, products }: TemplatePr
             </section>
 
             {/* Aesthetic Grid About & Vision */}
-            {(business.about || business.mission || business.vision) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) || business.mission || business.vision) && (
                 <section className="max-w-6xl mx-auto px-6 py-24 relative z-10">
                     <div className="grid lg:grid-cols-12 gap-8 md:gap-12">
-                        {(business.about || business.mission) && (
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) || business.mission) && (
                            <motion.div 
                              initial={{ opacity: 0, x: -30 }}
                              whileInView={{ opacity: 1, x: 0 }}
@@ -166,9 +168,9 @@ export default function HotelBoutiqueTemplate({ business, products }: TemplatePr
                                  <Key className="w-6 h-6 text-[#8C7A6B]" /> Our Story
                                </h3>
                                <p className="boutique-body text-[#6A5E51] leading-[2.2] text-[15px] md:text-base mb-8">
-                                   {business.about || business.mission}
+                                   {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) || business.mission}
                                </p>
-                               {business.mission && business.about && (
+                               {business.mission && (config?.about?.text || business.about || getPlaceholderText('about', business.name, 'hotel')) && (
                                    <div className="pt-8 border-t border-[#D0C5B5]/50">
                                       <h4 className="boutique-body text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-3">Our Mission</h4>
                                       <p className="boutique-display italic text-[#5A4D41] leading-relaxed">{business.mission}</p>

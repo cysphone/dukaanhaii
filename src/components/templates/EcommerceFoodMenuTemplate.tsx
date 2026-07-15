@@ -1,12 +1,13 @@
 'use client';
 
 import { formatPrice, getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { UtensilsCrossed, ArrowRight, Camera, MessageCircle, Globe, MapPin, Clock, ChefHat, GlassWater } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -44,6 +45,7 @@ interface TemplateProps {
 }
 
 export default function EcommerceFoodMenuTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -80,7 +82,7 @@ export default function EcommerceFoodMenuTemplate({ business, products }: Templa
                 <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex-1 hidden md:flex items-center gap-8 menu-body text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-500">
                         {products.length > 0 && <a href="#menu" className="hover:text-[#e11d48] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-px after:bg-[#e11d48] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">Menu</a>}
-                        {(business.about || business.vision) && <a href="#story" className="hover:text-[#e11d48] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-px after:bg-[#e11d48] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">Our Story</a>}
+                        {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.vision) && <a href="#story" className="hover:text-[#e11d48] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-px after:bg-[#e11d48] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left">Our Story</a>}
                     </div>
 
                     <div className="menu-display text-2xl md:text-3xl font-normal tracking-tight text-center flex-1 shrink-0">
@@ -105,9 +107,9 @@ export default function EcommerceFoodMenuTemplate({ business, products }: Templa
                     <UtensilsCrossed className="w-[120vw] h-[120vw] md:w-[80vw] md:h-[80vw] text-[#e11d48] rotate-12" />
                 </div>
                 
-                {business.bannerUrl && (
+                {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'grocery')) && (
                   <div className="absolute inset-0 z-0">
-                     <img src={business.bannerUrl} alt="Restaurant ambiance" className="w-full h-full object-cover opacity-15 grayscale filter contrast-125" />
+                     <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('ecommerce', 'grocery'))} alt="Restaurant ambiance" className="w-full h-full object-cover opacity-15 grayscale filter contrast-125" />
                      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white"></div>
                   </div>
                 )}
@@ -131,7 +133,7 @@ export default function EcommerceFoodMenuTemplate({ business, products }: Templa
                     </h1>
 
                     <h2 className="menu-display italic text-2xl md:text-4xl text-[#e11d48] max-w-2xl mx-auto leading-relaxed mb-12">
-                        {business.headline || business.tagline || 'Savor the art of culinary excellence.'}
+                        {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'ecommerce')) || (config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'ecommerce')) || 'Savor the art of culinary excellence.'}
                     </h2>
 
                     {waNumber && (
@@ -150,7 +152,7 @@ export default function EcommerceFoodMenuTemplate({ business, products }: Templa
             </section>
 
             {/* Story */}
-            {(business.about || business.vision || business.marketingDesc) && (
+            {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) || business.vision || business.marketingDesc) && (
                 <section id="story" className="py-32 px-6 max-w-4xl mx-auto text-center relative">
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
@@ -167,9 +169,9 @@ export default function EcommerceFoodMenuTemplate({ business, products }: Templa
                          </h4>
                       )}
                       
-                      {business.about && (
+                      {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce')) && (
                         <p className="menu-body text-lg md:text-xl text-gray-600 font-light leading-[1.8] mb-12 max-w-3xl mx-auto">
-                            {business.about}
+                            {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'ecommerce'))}
                         </p>
                       )}
                       

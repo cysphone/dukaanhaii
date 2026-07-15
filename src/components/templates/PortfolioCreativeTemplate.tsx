@@ -1,11 +1,12 @@
 'use client';
 
 import { getProductUrl } from '@/lib/utils';
+import { getPlaceholderImage, getPlaceholderText } from '@/lib/placeholders';
 import { motion } from 'framer-motion';
 import { Camera, MessageCircle, Globe, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface TemplateProps {
-  business: {
+  business: any | {
     name: string;
     slug: string;
     headline?: string | null;
@@ -43,6 +44,7 @@ interface TemplateProps {
 }
 
 export default function PortfolioCreativeTemplate({ business, products }: TemplateProps) {
+    const config = (business as any).templateConfig ? (typeof (business as any).templateConfig === 'string' ? JSON.parse((business as any).templateConfig) : (business as any).templateConfig) : {};
   const waNumber = business.whatsappNumber?.replace(/[^0-9]/g, '');
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hi! I'd like to collaborate with ${business.name}.`)}`;
 
@@ -68,9 +70,9 @@ export default function PortfolioCreativeTemplate({ business, products }: Templa
 
       {/* Hero Section */}
       <section className="relative h-screen flex flex-col justify-center px-6 overflow-hidden">
-        {business.bannerUrl && (
+        {(config?.hero?.image || business.bannerUrl || getPlaceholderImage('service', '')) && (
           <div className="absolute inset-0 z-0">
-            <img src={business.bannerUrl} alt="Background" className="w-full h-full object-cover opacity-20 scale-105" />
+            <img src={(config?.hero?.image || business.bannerUrl || getPlaceholderImage('service', ''))} alt="Background" className="w-full h-full object-cover opacity-20 scale-105" />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#fafafa] opacity-90" />
           </div>
         )}
@@ -81,13 +83,13 @@ export default function PortfolioCreativeTemplate({ business, products }: Templa
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            {business.tagline && (
+            {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'service')) && (
               <p className="text-sm md:text-base uppercase tracking-[0.3em] text-neutral-500 mb-6">
-                {business.tagline}
+                {(config?.hero?.tagline || business.tagline || getPlaceholderText('tagline', business.name, 'service'))}
               </p>
             )}
             <h1 className="text-6xl md:text-8xl lg:text-[10rem] font-bold leading-[0.9] tracking-tighter uppercase max-w-6xl">
-              {business.headline || `Creative Studio`}
+              {(config?.hero?.headline || business.headline || getPlaceholderText('headline', business.name, 'service')) || `Creative Studio`}
             </h1>
           </motion.div>
           
@@ -163,7 +165,7 @@ export default function PortfolioCreativeTemplate({ business, products }: Templa
       )}
 
       {/* About Section */}
-      {(business.about || business.vision) && (
+      {((config?.about?.text || business.about || getPlaceholderText('about', business.name, 'service')) || business.vision) && (
         <section id="about" className="py-32 px-6 bg-neutral-900 text-white selection:bg-neutral-700">
           <div className="max-w-screen-2xl mx-auto grid lg:grid-cols-2 gap-20">
             <div>
@@ -188,11 +190,11 @@ export default function PortfolioCreativeTemplate({ business, products }: Templa
             </div>
             
             <div className="space-y-16">
-              {business.about && (
+              {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'service')) && (
                 <div>
                   <h3 className="text-sm font-medium uppercase tracking-[0.3em] text-neutral-500 mb-6 border-b border-neutral-800 pb-4">Who we are</h3>
                   <p className="text-2xl md:text-3xl font-light leading-relaxed text-neutral-300">
-                    {business.about}
+                    {(config?.about?.text || business.about || getPlaceholderText('about', business.name, 'service'))}
                   </p>
                 </div>
               )}
