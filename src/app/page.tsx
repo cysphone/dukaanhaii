@@ -23,14 +23,14 @@ export default async function HomePage() {
           <li><Link href="#how">How It Works</Link></li>
           <li><Link href="#features">Features</Link></li>
           <li><Link href="#pricing">Pricing</Link></li>
-          <li>
-            {session ? (
-              <Link href="/dashboard" className="nav-cta">Dashboard →</Link>
-            ) : (
-              <Link href="/register" className="nav-cta">Start Free →</Link>
-            )}
-          </li>
         </ul>
+        <div className="nav-actions">
+          {session ? (
+            <Link href="/dashboard" className="nav-cta">Dashboard →</Link>
+          ) : (
+            <Link href="/register" className="nav-cta">Start Free →</Link>
+          )}
+        </div>
       </nav>
 
       {/* HERO */}
@@ -43,8 +43,8 @@ export default async function HomePage() {
           <div className="hero-content">
             <div className="hero-badge"><span className="badge-dot"></span> Now in Early Access — Free Forever Plan</div>
             <h1 className="hero-title">
-              Your Online Store,<br />
-              Built on <span className="highlight">WhatsApp</span>
+              Your All-in-One AI Store Builder<br />
+              that Delivers <span className="highlight" style={{ color: 'var(--green)' }}>Real Growth</span>
             </h1>
             <p className="hero-sub">
               Message our AI on WhatsApp, answer a few questions, and watch your professional online store go live
@@ -137,6 +137,32 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* BUILT FOR SMALL BUSINESS OWNERS */}
+      <section className="section text-center pt-8 pb-16">
+        <div className="section-inner">
+          <h3 className="section-title reveal mx-auto mb-10" style={{ fontSize: '1.8rem', maxWidth: '800px' }}>Built For Small Business Owners</h3>
+          <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
+            {[
+              { name: "Gym & Fitness", icon: "🏋️‍♂️" },
+              { name: "Clothing Store", icon: "👗" },
+              { name: "Bakery & Cake", icon: "🎂" },
+              { name: "Salon Owner", icon: "💇‍♀️" },
+              { name: "Restaurant & Cafe", icon: "🍛" },
+              { name: "Hardware Store", icon: "🔧" },
+              { name: "Kirana & Supermarket", icon: "🛒" },
+              { name: "Handloom Sarees", icon: "🧵" },
+            ].map((biz, i) => (
+              <div key={i} className="flex items-center gap-3 px-5 py-2.5 rounded-full border shadow-sm reveal" style={{ background: 'var(--white)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                <span className="text-xl">{biz.icon}</span> <span className="font-semibold text-sm" style={{ color: 'var(--ink)' }}>{biz.name}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-full border border-green-500 shadow-sm reveal w-full sm:w-auto mt-2" style={{ background: 'rgba(37, 211, 102, 0.1)', color: 'var(--green)' }}>
+              <span className="font-bold text-sm">And many more businesses like yours...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* TICKER */}
       <div className="ticker-wrap">
         <div className="ticker">
@@ -193,190 +219,146 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* AI ASSISTANTS */}
       <section className="features-section" id="features">
         <div className="features-inner">
-          <p className="section-tag reveal">Everything You Need</p>
-          <h2 className="section-title reveal">Powerful features,<br />zero complexity</h2>
-          <p className="section-sub reveal">Built for India's small business owners. Everything a big brand has —
-            delivered through a WhatsApp chat.</p>
+          <p className="section-tag reveal text-center mx-auto block mb-4">Meet Your Assistants</p>
+          <h2 className="section-title reveal text-center mx-auto mb-6">Meet Your DukaanHai AI Team</h2>
+          <p className="section-sub reveal text-center mx-auto mb-16">
+            A full team of digital experts working for you 24/7, all accessible through a simple WhatsApp chat.
+          </p>
 
-          <div className="features-grid reveal">
-            <div className="feat">
-              <div className="feat-icon-wrap" style={{ "background": "rgba(37,211,102,0.12)" }}>🤖</div>
-              <div className="feat-title">AI-Written Descriptions</div>
-              <p className="feat-desc">Our AI reads your product photos and generates SEO-optimized, compelling
-                product descriptions in seconds. In Hindi or English.</p>
+          <div className="flex flex-col gap-6 max-w-4xl mx-auto reveal">
+            {/* Assistant 1 */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 p-8 rounded-2xl border shadow-sm transition-transform hover:-translate-y-1" style={{ background: 'var(--white)', borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="flex flex-col items-center min-w-[200px] rounded-xl p-6" style={{ background: 'rgba(37, 211, 102, 0.05)' }}>
+                <div className="text-6xl mb-4">🛍️</div>
+                <div className="font-bold text-lg text-center" style={{ color: 'var(--ink)' }}>Store Setup Agent</div>
+                <div className="text-sm font-medium mt-1 text-center" style={{ color: 'var(--green)' }}>DukaanHai Core</div>
+              </div>
+              <div className="flex-1 py-2 w-full">
+                <ul className="space-y-4 text-left">
+                  <li className="flex items-start gap-3">
+                    <span style={{ color: 'var(--green)' }} className="mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Builds your complete online store in under 2 minutes</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span style={{ color: 'var(--green)' }} className="mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Sets up secure WhatsApp login and dynamic dashboard</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span style={{ color: 'var(--green)' }} className="mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Automatically configures custom subdomains</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div className="feat">
-              <div className="feat-icon-wrap" style={{ "background": "rgba(255,107,43,0.12)" }}>🖼️</div>
-              <div className="feat-title">Smart Image Optimization</div>
-              <p className="feat-desc">Automatic background removal, enhancement, and resizing. Your products always
-                look professional, even from a basic smartphone photo.</p>
+
+            {/* Assistant 2 */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 p-8 rounded-2xl border shadow-sm transition-transform hover:-translate-y-1" style={{ background: 'var(--white)', borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="flex flex-col items-center min-w-[200px] rounded-xl p-6" style={{ background: 'rgba(100, 150, 255, 0.05)' }}>
+                <div className="text-6xl mb-4">✍️</div>
+                <div className="font-bold text-lg text-center" style={{ color: 'var(--ink)' }}>Copywriter Agent</div>
+                <div className="text-sm font-medium mt-1 text-center text-blue-400">Content Creation</div>
+              </div>
+              <div className="flex-1 py-2 w-full">
+                <ul className="space-y-4 text-left">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-400 mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Generates compelling product descriptions instantly</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-400 mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Writes SEO-friendly content to rank on Google</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-400 mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Provides multi-language translations (Hindi, English, etc)</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div className="feat">
-              <div className="feat-icon-wrap" style={{ "background": "rgba(255,200,50,0.12)" }}>🔗</div>
-              <div className="feat-title">Instant Subdomain</div>
-              <p className="feat-desc">Get a permanent, shareable link at yourstore.dukaanhai.com. Easy to remember,
-                easy to share on any social platform or with customers.</p>
-            </div>
-            <div className="feat">
-              <div className="feat-icon-wrap" style={{ "background": "rgba(100,150,255,0.12)" }}>🔐</div>
-              <div className="feat-title">WhatsApp Login to Dashboard</div>
-              <p className="feat-desc">No passwords. We send a secure login link to your WhatsApp. Manage orders, add
-                products, and update content from any device — all through a clean dashboard.</p>
-            </div>
-            <div className="feat feat-big" style={{ "background": "rgba(255,255,255,0.05)" }}>
-              <div style={{ "display": "flex", "gap": "40px", "alignItems": "center", "flexWrap": "wrap" }}>
-                <div style={{ "flex": "1", "minWidth": "200px" }}>
-                  <div className="feat-icon-wrap" style={{ "background": "rgba(37,211,102,0.12)" }}>📊</div>
-                  <div className="feat-title">Live Store Analytics</div>
-                  <p className="feat-desc">Track visits, product views, and customer engagement in real-time. Know
-                    what's selling and what's not, right from your dashboard.</p>
-                </div>
-                <div style={{ "flex": "1", "minWidth": "200px" }}>
-                  <div className="feat-icon-wrap" style={{ "background": "rgba(255,107,43,0.12)" }}>💳</div>
-                  <div className="feat-title">Payments & Orders</div>
-                  <p className="feat-desc">Accept UPI, cards, and more. All orders land in your dashboard and a
-                    WhatsApp notification, so you never miss a sale.</p>
-                </div>
-                <div style={{ "flex": "1", "minWidth": "200px" }}>
-                  <div className="feat-icon-wrap" style={{ "background": "rgba(200,100,255,0.12)" }}>🌐</div>
-                  <div className="feat-title">Multi-language Ready</div>
-                  <p className="feat-desc">Serve customers in their preferred language. Your store can display
-                    content in Hindi, English, Tamil, Bengali, and more.</p>
-                </div>
+
+            {/* Assistant 3 */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 p-8 rounded-2xl border shadow-sm transition-transform hover:-translate-y-1" style={{ background: 'var(--white)', borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="flex flex-col items-center min-w-[200px] rounded-xl p-6" style={{ background: 'rgba(200, 100, 255, 0.05)' }}>
+                <div className="text-6xl mb-4">🖼️</div>
+                <div className="font-bold text-lg text-center" style={{ color: 'var(--ink)' }}>Image Enhancer</div>
+                <div className="text-sm font-medium mt-1 text-center text-purple-400">Visuals Studio</div>
+              </div>
+              <div className="flex-1 py-2 w-full">
+                <ul className="space-y-4 text-left">
+                  <li className="flex items-start gap-3">
+                    <span className="text-purple-400 mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Removes cluttered backgrounds from smartphone photos</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-purple-400 mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Generates professional studio-quality product shots</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-purple-400 mt-0.5 text-lg">✓</span>
+                    <span style={{ color: 'var(--muted)' }}>Automatically resizes and optimizes images for fast loading</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SHOWCASE */}
-      <section className="showcase-section">
-        <div className="showcase-inner">
-          <p className="section-tag reveal">Live Stores</p>
-          <h2 className="section-title reveal">Real businesses, real results</h2>
-          <p className="section-sub reveal">Thousands of sellers across India are already live on DukaanHai.</p>
-
-          <div className="store-cards reveal">
-            <div className="store-card">
-              <div className="store-img" style={{ "background": "linear-gradient(135deg,#ff9a9e,#fad0c4)", "color": "#c0392b" }}>
-                <div className="store-img-pattern" style={{ "color": "#c0392b" }}></div>
-                🌸
-              </div>
-              <div className="store-body">
-                <div className="store-name">Priya's Boutique</div>
-                <div className="store-url">priya-boutique.dukaanhai.com</div>
-                <div className="store-meta">
-                  <span className="store-pill">Fashion</span>
-                  <span className="store-pill">Mumbai</span>
+      {/* VOICES OF REAL BUSINESS OWNERS */}
+      <section className="section py-20 text-center">
+        <div className="section-inner max-w-6xl mx-auto px-4">
+          <h2 className="section-title reveal mx-auto mb-12">Voices of Real Business Owners</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+            {[
+              { name: "Priya Sharma", role: "Handloom Seller", desc: "My sales doubled after setting up my AI WhatsApp store in just 5 mins." },
+              { name: "Rahul Verma", role: "Electronics Store", desc: "DukaanHai saved me ₹30,000 I would've paid to a developer." },
+              { name: "Ayesha Khan", role: "Home Bakery", desc: "Customers love the clean dashboard and instant checkout." },
+              { name: "Deepak Singh", role: "Hardware Shop", desc: "I manage all my inventory directly from my phone now!" }
+            ].map((voice, idx) => (
+              <div key={idx} className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-surface-200 group transition-transform hover:-translate-y-2 cursor-pointer" style={{ background: 'var(--white)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                {/* Mock Video Placeholder */}
+                <div className="absolute inset-0 bg-surface-100 flex flex-col justify-end p-5" style={{ background: 'linear-gradient(to top, rgba(5,13,8,0.95) 0%, rgba(5,13,8,0.2) 60%, rgba(5,13,8,0.1) 100%)' }}>
+                  {/* Play Button */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-green-600 shadow-xl pl-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/></svg>
+                    </div>
+                  </div>
+                  
+                  {/* Text content */}
+                  <div className="relative z-10 text-left">
+                    <p className="text-white text-sm font-medium mb-3 italic line-clamp-3">"{voice.desc}"</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold shadow-md">
+                        {voice.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-white font-bold text-sm leading-tight">{voice.name}</div>
+                        <div className="text-gray-300 text-xs">{voice.role}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="store-card">
-              <div className="store-img" style={{ "background": "linear-gradient(135deg,#a1c4fd,#c2e9fb)", "color": "#2c6fad" }}>
-                <div className="store-img-pattern" style={{ "color": "#2c6fad" }}></div>
-                ⚡
-              </div>
-              <div className="store-body">
-                <div className="store-name">Ravi Electronics</div>
-                <div className="store-url">ravi-electronics.dukaanhai.com</div>
-                <div className="store-meta">
-                  <span className="store-pill">Electronics</span>
-                  <span className="store-pill">Delhi</span>
-                </div>
-              </div>
-            </div>
-            <div className="store-card">
-              <div className="store-img" style={{ "background": "linear-gradient(135deg,#fddb92,#d1fdff)", "color": "#b8860b" }}>
-                <div className="store-img-pattern" style={{ "color": "#b8860b" }}></div>
-                🍛
-              </div>
-              <div className="store-body">
-                <div className="store-name">Amma's Kitchen</div>
-                <div className="store-url">ammas-kitchen.dukaanhai.com</div>
-                <div className="store-meta">
-                  <span className="store-pill">Food</span>
-                  <span className="store-pill">Chennai</span>
-                </div>
-              </div>
-            </div>
-            <div className="store-card">
-              <div className="store-img" style={{ "background": "linear-gradient(135deg,#a8edea,#fed6e3)", "color": "#2c9687" }}>
-                <div className="store-img-pattern" style={{ "color": "#2c9687" }}></div>
-                🌿
-              </div>
-              <div className="store-body">
-                <div className="store-name">Organic Nest</div>
-                <div className="store-url">organic-nest.dukaanhai.com</div>
-                <div className="store-meta">
-                  <span className="store-pill">Organic</span>
-                  <span className="store-pill">Pune</span>
-                </div>
-              </div>
-            </div>
-            <div className="store-card">
-              <div className="store-img" style={{ "background": "linear-gradient(135deg,#f093fb,#f5576c)", "color": "white" }}>
-                <div className="store-img-pattern" style={{ "color": "white" }}></div>
-                💎
-              </div>
-              <div className="store-body">
-                <div className="store-name">Meena Jewels</div>
-                <div className="store-url">meena-jewels.dukaanhai.com</div>
-                <div className="store-meta">
-                  <span className="store-pill">Jewellery</span>
-                  <span className="store-pill">Jaipur</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="testi-section">
-        <div className="testi-inner">
-          <p className="section-tag reveal">Testimonials</p>
-          <h2 className="section-title reveal">Sellers love DukaanHai</h2>
-
-          <div className="testi-grid">
-            <div className="testi reveal reveal-delay-1">
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-quote">"I thought I'd need to hire a developer. Within 10 minutes of chatting on
-                WhatsApp, my saree store was live. My customers couldn't believe it."</p>
-              <div className="testi-person">
-                <div className="testi-avatar" style={{ "background": "linear-gradient(135deg,#ff9a9e,#fad0c4)" }}>🌸</div>
-                <div>
-                  <div className="testi-name">Sunita Sharma</div>
-                  <div className="testi-loc">Handloom Seller, Varanasi</div>
-                </div>
-              </div>
-            </div>
-            <div className="testi reveal reveal-delay-2">
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-quote">"My old website cost ₹30,000 and took 3 months. DukaanHai did the same in 5
-                minutes for free. The AI descriptions are actually better than what I wrote!"</p>
-              <div className="testi-person">
-                <div className="testi-avatar" style={{ "background": "linear-gradient(135deg,#a1c4fd,#c2e9fb)" }}>⚡</div>
-                <div>
-                  <div className="testi-name">Ravi Malhotra</div>
-                  <div className="testi-loc">Electronics Shop, Lajpat Nagar</div>
-                </div>
-              </div>
-            </div>
-            <div className="testi reveal reveal-delay-3">
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-quote">"Ab meri dukan poori duniya dekh sakti hai! I just sent photos on WhatsApp
-                and within minutes people from other cities started ordering my food products."</p>
-              <div className="testi-person">
-                <div className="testi-avatar" style={{ "background": "linear-gradient(135deg,#fddb92,#fad0c4)" }}>🍛</div>
-                <div>
-                  <div className="testi-name">Rekha Devi</div>
-                  <div className="testi-loc">Home Food Business, Lucknow</div>
-                </div>
-              </div>
-            </div>
+      {/* GRADIENT CTA BANNER */}
+      <section className="py-8">
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden shadow-2xl reveal" style={{ background: 'linear-gradient(135deg, var(--green-dark), #00b09b)' }}>
+             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 relative z-10 text-white">Get Your Free WhatsApp Store Link Now</h2>
+             <p className="text-lg font-medium text-white/90 mb-8 relative z-10 max-w-2xl mx-auto">Join 10,000+ businesses who have already launched their online presence with DukaanHai's AI assistants.</p>
+             <Link href="/register" className="inline-block bg-white text-green-700 font-bold px-8 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 relative z-10">Start Your Free Store Setup</Link>
+             
+             {/* Decorative Elements */}
+             <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/20 rounded-full blur-3xl"></div>
+             <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-green-400/30 rounded-full blur-3xl"></div>
           </div>
         </div>
       </section>
