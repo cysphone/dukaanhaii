@@ -298,3 +298,15 @@ User Message: "${messageText}"`;
     return { intent: 'unknown', replyText: "I didn't quite catch that. Type *MENU* to see your options." };
   }
 }
+export async function generateFieldContent(prompt: string, context: string): Promise<string> {
+    const fullPrompt = `Based on this business context:\n${context}\n\nTask: ${prompt}\n\nPlease output ONLY the requested text. No markdown formatting, no quotes, no extra explanations.`;
+    try {
+        const result = await model.generateContent(fullPrompt);
+        const response = await result.response;
+        return response.text().replace(/^["'](.*)["']$/, '$1').trim();
+    } catch (error) {
+        console.error('Gemini error generating field content, falling back to GPT-4o-mini', error);
+        const text = await fallbackToGPT(fullPrompt);
+        return text.replace(/^["'](.*)["']$/, '$1').trim();
+    }
+}

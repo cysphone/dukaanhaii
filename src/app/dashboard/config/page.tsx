@@ -6,15 +6,6 @@ import { getTemplateById } from '@/lib/templates';
 
 import GenericDashboardConfig from '@/components/dashboard/GenericDashboardConfig';
 
-// Pre-define dynamic imports for older dashboard configs
-const MinimalDashboardConfig = dynamic(() => import('@/components/templates/minimal/DashboardConfig'), {
-  loading: () => <p className="animate-pulse text-surface-500">Loading Minimal config...</p>,
-});
-
-const ServiceModernDashboardConfig = dynamic(() => import('@/components/templates/service-modern/DashboardConfig'), {
-  loading: () => <p className="animate-pulse text-surface-500">Loading Service Modern config...</p>,
-});
-
 export default function ConfigPage() {
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -56,15 +47,10 @@ export default function ConfigPage() {
       </div>
 
       <div className="mt-6">
-        {business.templateType === 'minimal' && <MinimalDashboardConfig business={business} />}
-        {business.templateType === 'service-modern' && <ServiceModernDashboardConfig business={business} />}
-        
-        {/* If the template has defined sections, use the Generic Dashboard Config */}
-        {template?.sections && template.sections.length > 0 && (
+        {/* Only V2 templates are supported now */}
+        {template?.pages && template.pages.length > 0 ? (
           <GenericDashboardConfig business={business} template={template} />
-        )}
-        
-        {!['minimal', 'service-modern'].includes(business.templateType) && (!template?.sections || template.sections.length === 0) && (
+        ) : (
            <div className="bg-white p-8 rounded-2xl border border-surface-200 shadow-sm text-center">
              <p className="text-surface-500">This template does not have specific configuration settings yet.</p>
            </div>

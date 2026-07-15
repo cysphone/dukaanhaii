@@ -6,7 +6,14 @@ import { uploadImageToCloudinary } from '@/lib/cloudinary';
 import { TEMPLATES, getTemplateById } from '@/lib/templates';
 import { handleEcommerceFlow } from './flows/ecommerceFlow';
 import { handleServiceFlow } from './flows/serviceFlow';
-import { handleTemplateConfigFlow, getFirstMissingField, generatePromptForField } from './flows/templateConfigFlow';
+import { handleTemplateConfigFlow } from './flows/templateConfigFlow';
+import { getOrCreateSession, updateSessionStep } from './services/sessionService';
+import { getExistingUserAndBusiness } from './services/userService';
+import { handleGlobalCommands } from './commands/globalCommands';
+import { handleIntentInterceptor } from './ai/intentInterceptor';
+import { handleBrandingState } from './state-machine/brandingHandler';
+import { sendWhatsAppMessage, uploadWaImage, getTemplatePrompt } from './utils';
+
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!;
 const WA_TOKEN = process.env.WHATSAPP_TOKEN!;
 const PHONE_ID = process.env.WHATSAPP_PHONE_ID!;
@@ -29,33 +36,6 @@ export async function GET(req: NextRequest) {
 
 // Incoming messages
 
-const getTemplatePrompt = (title: string) => {
-  let message = `${title}\n\n`;
-  TEMPLATES.forEach((t, i) => {
-    message += `*${i + 1}.* ${t.preview} *${t.name}* — ${t.tag}\n`;
-  });
-  message += `\nReply with a number from 1 to ${TEMPLATES.length}.`;
-  return message;
-};
-
-
-// Helper to upload WA image inside business creation
-async function uploadWaImage(imageId: string, folder: string) {
-  try {
-    const waMediaUrl = `https://graph.facebook.com/v20.0/${imageId}`;
-    const mediaRes = await fetch(waMediaUrl, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN!}` } });
-    const mediaData = await mediaRes.json();
-    if (mediaData.url) {
-      const imageRes = await fetch(mediaData.url, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN!}` } });
-      const arrayBuffer = await imageRes.arrayBuffer();
-      return await uploadImageToCloudinary(Buffer.from(arrayBuffer), folder);
-    }
-  } catch (e) {
-    console.error('Error uploading WA image:', e);
-  }
-  return null;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -76,131 +56,21 @@ export async function POST(req: NextRequest) {
     const text = message.text?.body?.trim() || '';
 
     // Get or create session
-    let session = await prisma.whatsappSession.findUnique({
-      where: { phoneNumber }
-    });
-
-    const now = new Date();
-    const timeoutThreshold = 30 * 60 * 1000; // 30 minutes
-    let isTimeout = false;
-
-    if (session && (now.getTime() - session.updatedAt.getTime() > timeoutThreshold) && session.step !== 'completed' && session.step !== 'start' && session.step !== 'main_menu') {
-      isTimeout = true;
-    }
-
-    if (!session) {
-      session = await prisma.whatsappSession.create({
-        data: { phoneNumber, step: 'start', collectedData: {} }
-      });
-    } else {
-      session = await prisma.whatsappSession.update({
-        where: { phoneNumber },
-        data: { updatedAt: now }
-      });
-    }
-
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
-    const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
+    let { session, isTimeout } = await getOrCreateSession(phoneNumber);
 
     const msgUpper = text.toUpperCase();
 
-    // Check if user has an existing account/business (check with and without + prefix)
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: dummyEmail },
-          { phoneNumber },
-          { phoneNumber: `+${phoneNumber}` } // Dashboards save it as +91...
-        ]
-      },
-      include: { businesses: true }
-    });
-    const existingBusiness = existingUser?.businesses?.[0];
+    // Check if user has an existing account/business
+    const { existingUser, existingBusiness } = await getExistingUserAndBusiness(phoneNumber);
+    
     const templateCat = existingBusiness ? getTemplateById(existingBusiness.templateType)?.category : 'ecommerce';
     const isService = templateCat === 'service' || templateCat === 'hotel';
     const itemWord = isService ? 'Service' : 'Product';
 
     // -- Global Command Interceptor --
-    if (['DASHBOARD', 'RESET', 'MENU', 'HELP'].includes(msgUpper) || isTimeout) {
-      if (msgUpper === 'HELP' && !isTimeout) {
-        const helpText = `🛠️ *DukaanHai Help Menu*\n\nHere are some main commands you can use at any time:\n\n*MENU* or *RESET* - Return to the main menu.\n*DASHBOARD* - Get a direct secure link to your store dashboard.\n*HELP* - View this help list.\n\n_Note: If you are creating a new site, please answer the questions directly._`;
-        await sendWhatsAppMessage(phoneNumber, helpText);
-        return NextResponse.json({ status: 'ok' });
-      }
-
-      if (msgUpper === 'DASHBOARD' && !isTimeout) {
-        if (!existingUser) {
-          await sendWhatsAppMessage(phoneNumber, `No account found. Please create your store first by typing *RESET*.`);
-          return NextResponse.json({ status: 'ok' });
-        }
-
-        if (existingUser.password && existingUser.password.length > 0) {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-          await sendWhatsAppMessage(phoneNumber, `You already have dashboard access.\n\nVisit: ${appUrl}/login`);
-          return NextResponse.json({ status: 'ok' });
-        }
-
-        const crypto = await import('crypto');
-        const token = crypto.randomBytes(32).toString('hex');
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-        await prisma.loginToken.create({
-          data: { phoneNumber, token, expiresAt }
-        });
-
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-        await sendWhatsAppMessage(phoneNumber, `Click this secure link to access your dashboard:\n\n${appUrl}/dashboard-access?token=${token}\n\nThis link expires in 10 minutes.`);
-
-        await prisma.whatsappSession.update({
-          where: { phoneNumber },
-          data: { step: 'completed' }
-        });
-
-        return NextResponse.json({ status: 'ok' });
-      }
-
-      if (msgUpper === 'RESET' || msgUpper === 'MENU' || isTimeout) {
-        if (existingBusiness) {
-          session = await prisma.whatsappSession.update({
-            where: { phoneNumber },
-            data: { step: 'handle_menu_choice', collectedData: { businessId: existingBusiness.id } },
-          });
-          const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
-          const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : (msgUpper === 'MENU' || msgUpper === 'RESET' ? `✅ Menu returned!\n\n` : '');
-          await sendWhatsAppMessage(phoneNumber, `${prefix}${replyText}`);
-          return NextResponse.json({ status: 'ok' });
-        } else {
-          session = await prisma.whatsappSession.update({
-            where: { phoneNumber },
-            data: { step: 'collect_name', collectedData: {} },
-          });
-          const prefix = isTimeout ? `Hi there! It's been a while since your last message.\n\n` : `✅ Reset successful!\n\n`;
-          await sendWhatsAppMessage(phoneNumber, `${prefix}*Please enter your store name:*`);
-          return NextResponse.json({ status: 'ok' });
-        }
-      }
-    }
-
-    // Detect Returning Users automatically (if step is start or completed but they already have an account)
-    if (session.step === 'start' || session.step === 'completed') {
-      if (existingBusiness) {
-        session = await prisma.whatsappSession.update({
-          where: { phoneNumber },
-          data: { step: 'handle_menu_choice', collectedData: { businessId: existingBusiness.id } }
-        });
-        const replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
-        await sendWhatsAppMessage(phoneNumber, replyText);
-        return NextResponse.json({ status: 'ok' });
-      } else if (existingUser) {
-        // User exists but has no store yet — continue with store creation
-        session = await prisma.whatsappSession.update({
-          where: { phoneNumber },
-          data: { step: 'collect_name', collectedData: {} }
-        });
-        await sendWhatsAppMessage(phoneNumber, `Welcome back! 👋 You don't have a store yet.\n\n*Please enter your store name:*`);
-        return NextResponse.json({ status: 'ok' });
-      }
-    }
+    const ctx = { phoneNumber, text, msgUpper, session, existingUser, existingBusiness, templateCat, isService, itemWord, isTimeout, message };
+    const commandRes = await handleGlobalCommands(ctx);
+    if (commandRes.handled) return NextResponse.json({ status: 'ok' });
 
     let collectedData = (session.collectedData as any) || {};
 
@@ -246,76 +116,12 @@ export async function POST(req: NextRequest) {
       };
     };
 
-    // AI Conversational Interceptor (Runs before switch for idle states)
-    const idleStates = ['main_menu', 'handle_menu_choice', 'completed'];
-    if (idleStates.includes(session.step) && text && !['1','2','3','4','5','6','7','MENU','RESET','SKIP'].includes(text.toUpperCase())) {
-      const aiResponse = await classifyUserIntent(text);
-      if (aiResponse.intent === 'create_store') {
-        if (existingBusiness) {
-           replyText = `You already have a store! You can only have 1 store per number.\n\nType *MENU* to see options for your existing store.`;
-           nextStep = 'completed';
-        } else {
-           collectedData.category = aiResponse.extractedData?.category || 'general';
-           replyText = `That's a great idea! Let's build your store right away. 🚀\n\n*Please enter your store name:*`;
-           nextStep = 'collect_name';
-        }
-      } else if (aiResponse.intent === 'add_product') {
-        if (!existingBusiness) {
-           replyText = `You don't have a store yet! Let's build one.\n\n*Please enter your store name:*`;
-           nextStep = 'collect_name';
-        } else {
-           replyText = `Great! 📝 Enter your new product's *Name*:`;
-           nextStep = 'collect_product_name';
-           collectedData.businessId = existingBusiness.id;
-        }
-      } else if (aiResponse.intent === 'edit_desc') {
-        if (!existingBusiness) {
-           replyText = `You don't have a store yet! Let's build one.\n\n*Please enter your store name:*`;
-           nextStep = 'collect_name';
-        } else {
-           replyText = `✏️ Please send your new store tagline or description:`;
-           nextStep = 'edit_store_desc';
-           collectedData.businessId = existingBusiness.id;
-        }
-      } else if (aiResponse.intent === 'edit_template') {
-        if (!existingBusiness) {
-           replyText = `You don't have a store yet! Let's build one.\n\n*Please enter your store name:*`;
-           nextStep = 'collect_name';
-        } else {
-           replyText = getTemplatePrompt('🎨 *Select a new template for your website:*');
-           nextStep = 'save_website_template';
-           collectedData.businessId = existingBusiness.id;
-        }
-      } else if (aiResponse.intent === 'edit_branding') {
-        if (!existingBusiness) {
-           replyText = `You don't have a store yet! Let's build one.\n\n*Please enter your store name:*`;
-           nextStep = 'collect_name';
-        } else {
-           replyText = `🎨 *What branding detail would you like to edit?*\n\n1️⃣ About Us\n2️⃣ Brand Logo\n3️⃣ Favicon\n4️⃣ Brand Colors\n5️⃣ Social Links\n6️⃣ Contact Info\n7️⃣ Footer & Copyright\n\nReply with a number 1-7.`;
-           nextStep = 'handle_branding_choice';
-           collectedData.businessId = existingBusiness.id;
-        }
-      } else if (aiResponse.intent === 'get_link') {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-        const storeUrl = existingBusiness ? getStoreUrl(existingBusiness.slug) : null;
-        if (storeUrl) {
-           replyText = `🔗 *Here is your store link:*\n\n${storeUrl}\n\nType *MENU* to see more options.`;
-           nextStep = 'completed';
-        } else {
-           replyText = `You don't have a store yet! Let's build one.\n\n*Please enter your store name:*`;
-           nextStep = 'collect_name';
-        }
-      } else if (aiResponse.intent === 'menu') {
-        replyText = `Welcome back! 🏪\n\nWhat would you like to change in your store?\n\n1️⃣ Edit Store Description\n2️⃣ Add New ${itemWord}\n3️⃣ Edit Existing ${itemWord}\n4️⃣ Edit Website Template\n5️⃣ Edit Branding & Details (Logo, Colors, Socials)\n6️⃣ Get Store Link\n\nReply with 1, 2, 3, 4, 5, or 6.`;
-        nextStep = 'handle_menu_choice';
-        if (existingBusiness) collectedData.businessId = existingBusiness.id;
-      } else {
-        // Only override if the AI gives a meaningful reply, otherwise let the standard flow handle it
-        if (aiResponse.replyText) {
-          replyText = aiResponse.replyText;
-          nextStep = session.step; // stay in idle state
-        }
-      }
+    // AI Conversational Interceptor
+    const intentRes = await handleIntentInterceptor(ctx, collectedData);
+    if (intentRes.handled) {
+      replyText = intentRes.replyText || '';
+      nextStep = intentRes.nextStep || session.step;
+      collectedData = intentRes.collectedData || collectedData;
     }
 
     const flowStates = [
@@ -327,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     if (!replyText && flowStates.includes(session.step)) {
       let result;
-      if (session.step === 'collect_template_field') {
+      if (['collect_template_field', 'ask_field_source', 'ai_field_preview', 'manual_field_input'].includes(session.step)) {
         result = await handleTemplateConfigFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message);
       } else if (isService) {
         result = await handleServiceFlow(session, phoneNumber, text, msgUpper, existingBusiness, collectedData, message, itemWord);
@@ -404,234 +210,24 @@ export async function POST(req: NextRequest) {
         break;
 
       
+      
+      // Delegated to Branding Handler
       case 'handle_branding_choice':
-        if (text === '1') {
-          replyText = `📝 Send your new 'About Us' text:`;
-          nextStep = 'edit_about_us';
-        } else if (text === '2') {
-          replyText = `📸 Please send an Image to use as your Brand Logo.\n(Type MENU to cancel)`;
-          nextStep = 'edit_logo';
-        } else if (text === '3') {
-          replyText = `🖼️ Please send a small, square Image to use as your Favicon.\n(Type MENU to cancel)`;
-          nextStep = 'edit_favicon';
-        } else if (text === '4') {
-          replyText = `🎨 What are your new brand colors?\n\nReply with a Primary Color and Secondary Color (e.g., 'Blue and White' or '#000000 and #ffffff').`;
-          nextStep = 'edit_colors';
-        } else if (text === '5') {
-          replyText = `🔗 Send your new social media links (Instagram, Facebook, Website) separated by commas.`;
-          nextStep = 'edit_socials';
-        } else if (text === '6') {
-          replyText = `📞 Send your new business Phone Number and Email separated by a comma.`;
-          nextStep = 'edit_contact';
-        } else if (text === '7') {
-          replyText = `📝 Send your new Footer Text and Copyright Text separated by a comma.`;
-          nextStep = 'edit_footer';
-        } else {
-          replyText = `Please reply with a number 1-7.\n\n1️⃣ About Us\n2️⃣ Brand Logo\n3️⃣ Favicon\n4️⃣ Brand Colors\n5️⃣ Social Links\n6️⃣ Contact Info\n7️⃣ Footer & Copyright`;
-          nextStep = 'handle_branding_choice';
-        }
-        break;
-
       case 'edit_about_us':
-        await prisma.business.update({
-          where: { id: collectedData.businessId },
-          data: { about: text }
-        });
-        replyText = `✅ About Us updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
-        break;
-
       case 'edit_logo':
-        if (message.image && message.image.id) {
-          replyText = `⏳ Uploading your new logo...`;
-          nextStep = 'uploading_logo';
-          const busId = collectedData.businessId;
-          uploadWaImage(message.image.id, `dukaanhai/business/logos`).then(async (url) => {
-             if (url) {
-               await prisma.business.update({ where: { id: busId }, data: { logoUrl: url }});
-               await sendWhatsAppMessage(phoneNumber, `✅ Logo updated successfully!\n\nType *MENU* to go back.`);
-               await prisma.whatsappSession.update({ where: { phoneNumber }, data: { step: 'completed' }});
-             } else {
-               await sendWhatsAppMessage(phoneNumber, `❌ Failed to upload logo. Type *MENU* to go back.`);
-             }
-          });
-        } else {
-          replyText = `Please send an actual *Photo (Image)*.`;
-          nextStep = 'edit_logo';
-        }
-        break;
-
       case 'uploading_logo':
-        replyText = `⏳ Please wait while the logo uploads...`;
-        nextStep = 'uploading_logo';
-        break;
-
       case 'edit_favicon':
-        if (message.image && message.image.id) {
-          replyText = `⏳ Uploading your new favicon...`;
-          nextStep = 'uploading_favicon';
-          const busId = collectedData.businessId;
-          uploadWaImage(message.image.id, `dukaanhai/business/favicons`).then(async (url) => {
-             if (url) {
-               await prisma.business.update({ where: { id: busId }, data: { faviconUrl: url }});
-               await sendWhatsAppMessage(phoneNumber, `✅ Favicon updated successfully!\n\nType *MENU* to go back.`);
-               await prisma.whatsappSession.update({ where: { phoneNumber }, data: { step: 'completed' }});
-             } else {
-               await sendWhatsAppMessage(phoneNumber, `❌ Failed to upload favicon. Type *MENU* to go back.`);
-             }
-          });
-        } else {
-          replyText = `Please send an actual *Photo (Image)*.`;
-          nextStep = 'edit_favicon';
-        }
-        break;
-
       case 'uploading_favicon':
-        replyText = `⏳ Please wait while the favicon uploads...`;
-        nextStep = 'uploading_favicon';
-        break;
-
-      case 'edit_colors': {
-        const parts = text.split(/and|,/i).map((s: string) => s.trim()).filter(Boolean);
-        let primaryColor = parts[0] || null;
-        let secondaryColor = parts[1] || null;
-        await prisma.business.update({
-          where: { id: collectedData.businessId },
-          data: { primaryColor, secondaryColor }
-        });
-        replyText = `✅ Colors updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
-        break;
-      }
-
-      case 'edit_socials': {
-        const links = text.split(',').map((s: string) => s.trim()).filter(Boolean);
-        await prisma.business.update({
-          where: { id: collectedData.businessId },
-          data: { instagramUrl: links[0] || null, facebookUrl: links[1] || null, websiteUrl: links[2] || null }
-        });
-        replyText = `✅ Social links updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
-        break;
-      }
-
-      case 'edit_contact': {
-        const contacts = text.split(',').map((s: string) => s.trim()).filter(Boolean);
-        await prisma.business.update({
-          where: { id: collectedData.businessId },
-          data: { phoneNumber: contacts[0] || null, email: contacts[1] || null }
-        });
-        replyText = `✅ Contact info updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
-        break;
-      }
-
+      case 'edit_colors':
+      case 'edit_socials':
+      case 'edit_contact':
       case 'edit_footer': {
-        const footers = text.split(',').map((s: string) => s.trim()).filter(Boolean);
-        await prisma.business.update({
-          where: { id: collectedData.businessId },
-          data: { footerText: footers[0] || null, copyrightText: footers[1] || null }
-        });
-        replyText = `✅ Footer info updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
-        break;
-      }
-
-      case 'save_website_template': {
-        const idx = parseInt(text) - 1;
-        if (!isNaN(idx) && idx >= 0 && idx < TEMPLATES.length) {
-          const t = TEMPLATES[idx];
-          await prisma.business.update({
-            where: { id: collectedData.businessId },
-            data: { templateType: t.id }
-          });
-          
-          const currentConfig = existingBusiness?.templateConfig ? JSON.parse(JSON.stringify(existingBusiness.templateConfig)) : {};
-          const missing = getFirstMissingField(t, currentConfig);
-          
-          if (missing) {
-            replyText = `✅ Website template successfully updated to *${t.name}*!\n\nThis template requires some extra details.\n\n` + generatePromptForField(missing.section, missing.field);
-            nextStep = 'collect_template_field';
-            collectedData.targetSectionId = missing.section.id;
-            collectedData.targetFieldId = missing.field.id;
-          } else {
-            replyText = `✅ Website template successfully updated to *${t.name}*!\n\nType *MENU* to return to the main menu.`;
-            nextStep = 'completed';
-          }
-        } else {
-          replyText = `Please reply with a number from 1 to ${TEMPLATES.length}.`;
-          nextStep = 'save_website_template';
+        const brandingRes = await handleBrandingState(ctx, collectedData);
+        if (brandingRes.handled) {
+          replyText = brandingRes.replyText || '';
+          nextStep = brandingRes.nextStep || session.step;
+          collectedData = brandingRes.collectedData || collectedData;
         }
-        break;
-      }
-
-      case 'edit_store_desc':
-        await prisma.business.update({
-          where: { id: collectedData.businessId },
-          data: { description: text }
-        });
-        replyText = `✅ Store description updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
-        break;
-
-      case 'select_edit_product': {
-        const idx = parseInt(text) - 1;
-        const pIds = collectedData.tmpProducts || [];
-        if (isNaN(idx) || idx < 0 || idx >= pIds.length) {
-          replyText = `Please reply with a valid number (e.g., 1).`;
-          nextStep = 'select_edit_product';
-        } else {
-          collectedData.editProductId = pIds[idx];
-          replyText = `What would you like to edit?\n\n1️⃣ Name\n2️⃣ Price\n3️⃣ Description\n4️⃣ Delete Product\n\nReply with a number:`;
-          nextStep = 'choose_product_field';
-        }
-        break;
-      }
-
-      case 'choose_product_field':
-        if (text === '1') {
-          replyText = `🏷️ Enter the new product name:`;
-          collectedData.editField = 'name';
-          nextStep = 'save_product_field';
-        } else if (text === '2') {
-          replyText = `💰 Enter the new price (e.g. 500):`;
-          collectedData.editField = 'price';
-          nextStep = 'save_product_field';
-        } else if (text === '3') {
-          replyText = `📝 Enter the new description:`;
-          collectedData.editField = 'description';
-          nextStep = 'save_product_field';
-        } else if (text === '4') {
-          await prisma.product.delete({ where: { id: collectedData.editProductId } });
-          replyText = `🗑️ ${itemWord} deleted successfully!\n\nType *MENU* to go back.`;
-          nextStep = 'completed';
-        } else {
-          replyText = `Please reply with 1, 2, 3, or 4.`;
-          nextStep = 'choose_product_field';
-        }
-        break;
-
-      case 'save_product_field': {
-        let updateData: any = {};
-        if (collectedData.editField === 'name') updateData.name = text;
-        if (collectedData.editField === 'description') updateData.description = text;
-        if (collectedData.editField === 'price') {
-          const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-          if (isNaN(num)) {
-            replyText = `Please reply with numbers only.\nEnter the price:`;
-            nextStep = 'save_product_field';
-            break;
-          }
-          updateData.price = num;
-        }
-
-        await prisma.product.update({
-          where: { id: collectedData.editProductId },
-          data: updateData
-        });
-
-        replyText = `✅ ${itemWord} updated successfully!\n\nType *MENU* to go back to the main menu.`;
-        nextStep = 'completed';
         break;
       }
 
@@ -1321,23 +917,6 @@ export async function POST(req: NextRequest) {
     console.error('WhatsApp webhook error:', error);
     return NextResponse.json({ status: 'error' }, { status: 500 });
   }
-}
-
-async function sendWhatsAppMessage(to: string, text: string) {
-  const url = `https://graph.facebook.com/v20.0/${PHONE_ID}/messages`;
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${WA_TOKEN}`,
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to,
-      type: 'text',
-      text: { body: text },
-    }),
-  });
 }
 
 async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promise<{ storeUrl: string, businessId: string }> {

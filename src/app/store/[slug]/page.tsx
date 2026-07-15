@@ -1,27 +1,9 @@
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import BoldTemplate from '@/components/templates/BoldTemplate';
-import CatalogTemplate from '@/components/templates/CatalogTemplate';
-import EcommerceClothingChicTemplate from '@/components/templates/EcommerceClothingChicTemplate';
-import EcommerceClothingStreetTemplate from '@/components/templates/EcommerceClothingStreetTemplate';
-import EcommerceFoodFreshTemplate from '@/components/templates/EcommerceFoodFreshTemplate';
-import EcommerceFoodMenuTemplate from '@/components/templates/EcommerceFoodMenuTemplate';
-import EcommerceTechCyberTemplate from '@/components/templates/EcommerceTechCyberTemplate';
-import EcommerceTechGadgetTemplate from '@/components/templates/EcommerceTechGadgetTemplate';
-import ElegantTemplate from '@/components/templates/ElegantTemplate';
-import FuturisticTemplate from '@/components/templates/FuturisticTemplate';
-import GymModernTemplate from '@/components/templates/GymModernTemplate';
-import GymPowerTemplate from '@/components/templates/GymPowerTemplate';
-import GymZenTemplate from '@/components/templates/GymZenTemplate';
-import HotelBoutiqueTemplate from '@/components/templates/HotelBoutiqueTemplate';
-import HotelLuxuryTemplate from '@/components/templates/HotelLuxuryTemplate';
-import HotelResortTemplate from '@/components/templates/HotelResortTemplate';
-import MinimalTemplate from '@/components/templates/minimal';
-import PlayfulTemplate from '@/components/templates/PlayfulTemplate';
-import ServiceModernTemplate from '@/components/templates/service-modern';
-import PortfolioCreativeTemplate from '@/components/templates/PortfolioCreativeTemplate';
-import LandingMinimalTemplate from '@/components/templates/LandingMinimalTemplate';
-import MultiPageHomeTemplate from '@/components/templates/multi-page/MultiPageHomeTemplate';
+import { PrismaClient } from '@prisma/client';
+import { getTemplateById } from '@/lib/templates';
+import TemplateEngine from '@/components/templates/v2/TemplateEngine';
+
+const prisma = new PrismaClient();
 
 interface StorePageProps {
   params: { slug: string };
@@ -63,61 +45,24 @@ export default async function StorePage({ params, searchParams }: StorePageProps
     notFound();
   }
 
-  const templateType = searchParams.template || business.templateType || 'minimal';
+  const templateType = searchParams.template || business.templateType || 'premium-ecommerce-v2';
+  
+  const templateDef = getTemplateById(templateType);
 
-  const props = { business, products: business.products };
-
-  switch (templateType) {
-    case 'bold':
-      return <BoldTemplate {...props} />;
-    case 'catalog':
-      return <CatalogTemplate {...props} />;
-    case 'ecommerce-clothing-chic':
-      return <EcommerceClothingChicTemplate {...props} />;
-    case 'ecommerce-clothing-street':
-      return <EcommerceClothingStreetTemplate {...props} />;
-    case 'ecommerce-food-fresh':
-      return <EcommerceFoodFreshTemplate {...props} />;
-    case 'ecommerce-food-menu':
-      return <EcommerceFoodMenuTemplate {...props} />;
-    case 'ecommerce-tech-cyber':
-      return <EcommerceTechCyberTemplate {...props} />;
-    case 'ecommerce-tech-gadget':
-      return <EcommerceTechGadgetTemplate {...props} />;
-    case 'elegant':
-      return <ElegantTemplate {...props} />;
-    case 'futuristic':
-      return <FuturisticTemplate {...props} />;
-    case 'gym-modern':
-      return <GymModernTemplate {...props} />;
-    case 'gym-power':
-      return <GymPowerTemplate {...props} />;
-    case 'gym-zen':
-      return <GymZenTemplate {...props} />;
-    case 'hotel-boutique':
-      return <HotelBoutiqueTemplate {...props} />;
-    case 'hotel-luxury':
-      return <HotelLuxuryTemplate {...props} />;
-    case 'hotel-resort':
-      return <HotelResortTemplate {...props} />;
-    case 'playful':
-      return <PlayfulTemplate {...props} />;
-    case 'service-modern':
-      return <ServiceModernTemplate {...props} />;
-    case 'portfolio-creative':
-      return <PortfolioCreativeTemplate {...props} />;
-    case 'landing-minimal':
-      return <LandingMinimalTemplate {...props} />;
-    
-    // Multi-page niche templates
-    case 'niche-crochet':
-    case 'niche-baker':
-    case 'niche-mehndi':
-    case 'niche-boutique':
-    case 'niche-resin':
-      return <MultiPageHomeTemplate {...props} />;
-      
-    default:
-      return <MinimalTemplate {...props} />;
+  if (templateDef && 'pages' in templateDef) {
+    const homePage = templateDef.pages.find((p: any) => p.path === '/');
+    if (homePage) {
+      return <TemplateEngine business={business} template={templateDef} pageId={homePage.id} />;
+    }
   }
+
+  // Fallback if somehow template doesn't exist
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-800 p-4">
+      <div className="text-center max-w-md">
+         <h1 className="text-3xl font-bold mb-4">Template Not Found</h1>
+         <p>The requested template "{templateType}" could not be loaded. Please ensure you have selected a valid template.</p>
+      </div>
+    </div>
+  );
 }

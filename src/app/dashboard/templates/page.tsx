@@ -9,7 +9,7 @@ export default function TemplatesPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   
-  const [activeCategory, setActiveCategory] = useState<TemplateCategory>('general');
+  const [activeCategory, setActiveCategory] = useState<TemplateCategory>('all');
   const [activeSubcategory, setActiveSubcategory] = useState<TemplateSubcategory | 'all'>('all');
 
   useEffect(() => {
@@ -23,8 +23,8 @@ export default function TemplatesPage() {
             // Auto-select category based on current template
             const t = TEMPLATES.find(x => x.id === d.business.templateType);
             if (t) {
-              setActiveCategory(t.category);
-              if (t.subcategory) setActiveSubcategory(t.subcategory);
+              setActiveCategory(t.category as TemplateCategory);
+              if (t.subcategory) setActiveSubcategory(t.subcategory as TemplateSubcategory);
             }
           }
         }
