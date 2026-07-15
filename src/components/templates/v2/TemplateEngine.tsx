@@ -15,6 +15,9 @@ import { TextSection } from './sections/TextSection';
 import { SplitHeroSection } from './sections/SplitHeroSection';
 import { IconGridSection } from './sections/IconGridSection';
 import { ProductCarouselSection } from './sections/ProductCarouselSection';
+import { TestimonialsSection } from './sections/TestimonialsSection';
+import { FaqSection } from './sections/FaqSection';
+import { ContactSection } from './sections/ContactSection';
 
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
@@ -46,7 +49,10 @@ const FallbackRegistry: Record<string, React.FC<any>> = {
   TextSection,
   SplitHeroSection,
   IconGridSection,
-  ProductCarouselSection
+  ProductCarouselSection,
+  TestimonialsSection,
+  FaqSection,
+  ContactSection
 };
 
 const TemplateSpecificRegistries: Record<string, Record<string, React.FC<any>>> = {

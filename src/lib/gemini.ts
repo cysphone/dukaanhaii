@@ -310,3 +310,42 @@ export async function generateFieldContent(prompt: string, context: string): Pro
         return text.replace(/^["'](.*)["']$/, '$1').trim();
     }
 }
+
+export async function generateTemplateConfig(
+  templateId: string, 
+  business: { name: string; category: string; description: string; location: string }
+): Promise<any> {
+  const { TEMPLATES } = await import('./templates');
+  const template = TEMPLATES.find((t) => t.id === templateId);
+  if (!template) throw new Error('Template not found');
+
+  const currentConfig: any = {};
+  const businessContext = `
+    Business Name: ${business.name || 'My Business'}
+    Category: ${business.category || 'Retail'}
+    Description: ${business.description || 'A great local business.'}
+    Location: ${business.location || 'India'}
+  `;
+
+  for (const page of template.pages || []) {
+    currentConfig[page.id] = {};
+    for (const section of page.sections) {
+      currentConfig[page.id][section.id] = {};
+      for (const field of section.fields) {
+        if (field.aiPrompt) {
+          try {
+            console.log(`Generating AI content for ${page.id} -> ${section.id} -> ${field.id}`);
+            const generatedText = await generateFieldContent(field.aiPrompt, businessContext);
+            currentConfig[page.id][section.id][field.id] = generatedText;
+          } catch (err) {
+            console.error(`AI Generation failed for ${field.id}:`, err);
+            currentConfig[page.id][section.id][field.id] = field.defaultValue || '';
+          }
+        } else if (field.defaultValue !== undefined) {
+          currentConfig[page.id][section.id][field.id] = field.defaultValue;
+        }
+      }
+    }
+  }
+  return currentConfig;
+}

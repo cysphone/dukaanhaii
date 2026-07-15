@@ -11,6 +11,8 @@ export default function TemplatesPage() {
   
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>('all');
   const [activeSubcategory, setActiveSubcategory] = useState<TemplateSubcategory | 'all'>('all');
+  const [showModal, setShowModal] = useState(false);
+  const [aiSaved, setAiSaved] = useState(false);
 
   useEffect(() => {
     fetch('/api/business/me')
@@ -31,22 +33,37 @@ export default function TemplatesPage() {
       });
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = async (isAi: boolean) => {
     if (!business) return;
     setSaving(true);
+    setShowModal(false);
 
     try {
-      const res = await fetch(`/api/business/${business.id}/generate-template`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateId: selected })
-      });
-      
-      if (res.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 5000);
+      if (isAi) {
+        const res = await fetch(`/api/business/${business.id}/generate-template`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ templateId: selected })
+        });
+        if (res.ok) {
+          setAiSaved(true);
+          setTimeout(() => setAiSaved(false), 5000);
+        } else {
+          alert("Failed to generate template content using AI.");
+        }
       } else {
-        alert("Failed to generate template. Please try again.");
+        const formData = new FormData();
+        formData.append('templateType', selected);
+        const res = await fetch(`/api/business/${business.id}`, {
+          method: 'PUT',
+          body: formData
+        });
+        if (res.ok) {
+          setSaved(true);
+          setTimeout(() => setSaved(false), 5000);
+        } else {
+          alert("Failed to update template.");
+        }
       }
     } catch (e) {
       console.error(e);
@@ -186,17 +203,55 @@ export default function TemplatesPage() {
       {/* Save Footer (Fixed) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-surface-200 p-4 z-50 md:ml-64">
         <div className="max-w-6xl mx-auto flex items-center justify-end gap-4 pr-4">
-          {saved && <span className="text-green-600 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-lg">✨ AI generated your content successfully! Check Template Config to edit.</span>}
+          {aiSaved && <span className="text-green-600 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-lg">✨ AI generated all copy & media successfully! Head to Config to review.</span>}
+          {saved && <span className="text-green-600 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-lg">✅ Template applied! Fill content in Template Config.</span>}
           {!business && <span className="text-surface-400 text-sm">Create a business first to apply templates</span>}
           <button
-            onClick={handleSave}
+            onClick={() => setShowModal(true)}
             disabled={saving || !business}
             className="btn-primary px-8 py-2.5 shadow-md hover:shadow-lg transition-all"
           >
-            {saving ? '✨ Generating AI Content...' : 'Apply Template & Generate'}
+            {saving ? '⏳ Setting up...' : 'Save & Apply Template'}
           </button>
         </div>
       </div>
+
+      {/* AI vs Manual Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-surface-150 mx-4">
+            <div className="text-center">
+              <span className="text-4xl">🎨</span>
+              <h3 className="text-xl font-black text-surface-900 mt-4">Template Setup Choice</h3>
+              <p className="text-sm text-surface-500 mt-2 leading-relaxed">
+                You selected <strong>{TEMPLATES.find(t => t.id === selected)?.name}</strong>.<br />
+                How would you like to set up the content for this template?
+              </p>
+            </div>
+
+            <div className="mt-8 space-y-3">
+              <button
+                onClick={() => handleSave(true)}
+                className="w-full py-3.5 bg-[#166534] hover:bg-[#15803d] text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                ✨ Auto-Generate with AI
+              </button>
+              <button
+                onClick={() => handleSave(false)}
+                className="w-full py-3.5 bg-surface-100 hover:bg-surface-200 text-surface-700 rounded-xl font-bold transition-all border border-surface-200"
+              >
+                ✍️ Setup Manually (Self)
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full py-2.5 text-surface-400 hover:text-surface-600 text-sm font-semibold transition-all mt-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

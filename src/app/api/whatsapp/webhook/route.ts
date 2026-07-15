@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription, generateProductImage, classifyUserIntent } from '@/lib/gemini';
+import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription, generateProductImage, classifyUserIntent, generateTemplateConfig } from '@/lib/gemini';
 import { generateSlug, getStoreUrl } from '@/lib/utils';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
 import { TEMPLATES, getTemplateById } from '@/lib/templates';
@@ -575,45 +575,222 @@ export async function POST(req: NextRequest) {
 
       case 'collect_template': {
         const idx = parseInt(text) - 1;
+        let selectedTemplate = TEMPLATES[0];
         if (isNaN(idx) || idx < 0 || idx >= TEMPLATES.length) {
-          collectedData.template = 'minimal';
+          collectedData.template = TEMPLATES[0].id;
         } else {
-          const t = TEMPLATES[idx];
-          collectedData.template = t.id;
+          selectedTemplate = TEMPLATES[idx];
+          collectedData.template = selectedTemplate.id;
         }
 
-        replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your headline & description\n✅ Preparing your website\n\nPlease wait a moment! ⏳`;
-        nextStep = 'creating';
+        const homepage = selectedTemplate.pages?.find(p => p.path === '/');
+        const sectionsCount = homepage ? homepage.sections.length : 6;
 
-        // Create business (async)
-        createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-          await sendWhatsAppMessage(
-            phoneNumber,
-            `🎉 *Congratulations! Your store is ready!*\n\n🔗 *Store Link:* ${storeUrl}\n\nShare it with your customers now! 🚀\n\n_Visit your dashboard here:_ ${appUrl}/login`
-          );
-          await new Promise(r => setTimeout(r, 2000));
-          await sendWhatsAppMessage(
-            phoneNumber,
-            `Would you like to add a new product to your store?\nReply *YES* to add or *NO* to skip.`
-          );
-          await prisma.whatsappSession.update({
-            where: { phoneNumber },
-            data: { step: 'ask_add_product', collectedData: { businessId } },
-          });
-        }).catch(async (e) => {
-          console.error('Error creating business:', e);
-          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
-          await sendWhatsAppMessage(phoneNumber, `❌ Something went wrong. Please try creating manually on ${rootDomain}.`);
-          await prisma.whatsappSession.update({
-            where: { phoneNumber },
-            data: { step: 'start', collectedData: {} },
-          });
-        });
+        replyText = `You selected *${selectedTemplate.name}*! This template has ${sectionsCount} sections.\n\nHow would you like to set up the website content?\n\n1️⃣ *Generate with AI* — Auto-generate all copy and stock photography using Gemini AI.\n2️⃣ *Fill myself* — Input all content manually step-by-step.\n\nReply with 1 or 2.`;
+        nextStep = 'collect_template_choice';
         break;
       }
 
+      case 'collect_template_choice': {
+        if (text === '1') {
+          collectedData.templateContentSource = 'ai';
+          replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Generating copy using Gemini\n✅ Inserting high-res imagery\n\nPlease wait! ⏳`;
+          nextStep = 'creating';
+          await sendWhatsAppMessage(phoneNumber, replyText);
+          
+          createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+            await sendWhatsAppMessage(
+              phoneNumber,
+              `🎉 *Congratulations! Your store is ready!*\n\n🔗 *Store Link:* ${storeUrl}\n\nShare it with your customers now! 🚀\n\n_Visit your dashboard here:_ ${appUrl}/login`
+            );
+            await new Promise(r => setTimeout(r, 2000));
+            await sendWhatsAppMessage(
+              phoneNumber,
+              `Would you like to add a new product to your store?\nReply *YES* to add or *NO* to skip.`
+            );
+            await prisma.whatsappSession.update({
+              where: { phoneNumber },
+              data: { step: 'ask_add_product', collectedData: { businessId } },
+            });
+          }).catch(async (e) => {
+            console.error('Error creating business:', e);
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+            await sendWhatsAppMessage(phoneNumber, `❌ Something went wrong. Please try creating manually on ${rootDomain}.`);
+            await prisma.whatsappSession.update({
+              where: { phoneNumber },
+              data: { step: 'start', collectedData: {} },
+            });
+          });
+        } else if (text === '2') {
+          collectedData.templateContentSource = 'self';
+          replyText = `🤖 *Creating profile...*\n\n✅ Creating business profile\n\nPlease wait a moment! ⏳`;
+          nextStep = 'creating';
+          await sendWhatsAppMessage(phoneNumber, replyText);
+          
+          createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
+            const { getTemplateById } = await import('@/lib/templates');
+            const template = getTemplateById(collectedData.template);
+            const emptyConfig = {};
+            const { getFirstMissingField, generatePromptForFieldSource } = await import('./flows/templateConfigFlow');
+            const missing = getFirstMissingField(template!, emptyConfig);
+            
+            if (missing) {
+              await sendWhatsAppMessage(phoneNumber, `🎉 *Your store profile has been created!*\n\n🔗 *Store Link:* ${storeUrl}\n\nLet's customize your website content step-by-step.`);
+              await new Promise(r => setTimeout(r, 1500));
+              
+              const fieldPrompt = generatePromptForFieldSource(missing.page, missing.section, missing.field);
+              await sendWhatsAppMessage(phoneNumber, fieldPrompt);
+              
+              await prisma.whatsappSession.update({
+                where: { phoneNumber },
+                data: { 
+                  step: 'ask_field_source', 
+                  collectedData: { 
+                    businessId,
+                    targetPageId: missing.page?.id,
+                    targetSectionId: missing.section.id,
+                    targetFieldId: missing.field.id
+                  } 
+                },
+              });
+            } else {
+              const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+              await sendWhatsAppMessage(phoneNumber, `🎉 *Your store profile has been created!*\n\n🔗 *Store Link:* ${storeUrl}\n\nType *MENU* to see more options.`);
+              await prisma.whatsappSession.update({
+                where: { phoneNumber },
+                data: { step: 'completed', collectedData: { businessId } },
+              });
+            }
+          }).catch(async (e) => {
+            console.error('Error creating business:', e);
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+            await sendWhatsAppMessage(phoneNumber, `❌ Something went wrong. Please try creating manually on ${rootDomain}.`);
+            await prisma.whatsappSession.update({
+              where: { phoneNumber },
+              data: { step: 'start', collectedData: {} },
+            });
+          });
+        } else {
+          replyText = `Please reply with *1* (AI) or *2* (Manual).`;
+          nextStep = 'collect_template_choice';
+        }
+        break;
+      }
 
+      case 'save_website_template': {
+        const idx = parseInt(text) - 1;
+        let selectedTemplate = TEMPLATES[0];
+        if (isNaN(idx) || idx < 0 || idx >= TEMPLATES.length) {
+          replyText = `Please reply with a valid number from 1 to ${TEMPLATES.length}.`;
+          nextStep = 'save_website_template';
+        } else {
+          selectedTemplate = TEMPLATES[idx];
+          collectedData.templateToApply = selectedTemplate.id;
+          
+          const homepage = selectedTemplate.pages?.find(p => p.path === '/');
+          const sectionsCount = homepage ? homepage.sections.length : 6;
+          
+          replyText = `You selected *${selectedTemplate.name}*! This template has ${sectionsCount} sections.\n\nHow would you like to set up the website content?\n\n1️⃣ *Generate with AI* — Auto-generate all copy and stock photography using Gemini AI.\n2️⃣ *Fill myself* — Input all content manually step-by-step.\n\nReply with 1 or 2.`;
+          nextStep = 'collect_edit_template_choice';
+        }
+        break;
+      }
+
+      case 'collect_edit_template_choice': {
+        if (!existingBusiness) {
+          replyText = `You do not have an active store. Type MENU to see options.`;
+          nextStep = 'main_menu';
+          break;
+        }
+        const templateId = collectedData.templateToApply;
+        if (!templateId) {
+          replyText = `Please type *MENU* and try again.`;
+          nextStep = 'main_menu';
+          break;
+        }
+
+        if (text === '1') {
+          replyText = `🤖 *AI is generating content for your new template...*\n\nThis will take a moment. Please wait! ⏳`;
+          nextStep = 'creating';
+          await sendWhatsAppMessage(phoneNumber, replyText);
+
+          try {
+            const aiConfig = await generateTemplateConfig(templateId, {
+              name: existingBusiness.name,
+              category: existingBusiness.category || 'Retail',
+              description: existingBusiness.description || '',
+              location: existingBusiness.location || '',
+            });
+
+            await prisma.business.update({
+              where: { id: existingBusiness.id },
+              data: {
+                templateType: templateId,
+                templateConfig: aiConfig
+              }
+            });
+
+            const storeUrl = getStoreUrl(existingBusiness.slug);
+            await sendWhatsAppMessage(phoneNumber, `✨ *Website template updated and AI content generated successfully!*\n\n🔗 *Store Link:* ${storeUrl}\n\nType *MENU* to see more options.`);
+            await prisma.whatsappSession.update({
+              where: { phoneNumber },
+              data: { step: 'completed', collectedData: { businessId: existingBusiness.id } }
+            });
+          } catch (e) {
+            console.error(e);
+            await sendWhatsAppMessage(phoneNumber, `❌ AI content generation failed. Template applied, but config is empty. Type *MENU* to go back.`);
+            await prisma.whatsappSession.update({
+              where: { phoneNumber },
+              data: { step: 'completed', collectedData: { businessId: existingBusiness.id } }
+            });
+          }
+          return NextResponse.json({ status: 'ok' });
+        } else if (text === '2') {
+          await prisma.business.update({
+            where: { id: existingBusiness.id },
+            data: {
+              templateType: templateId,
+              templateConfig: {}
+            }
+          });
+
+          const { getTemplateById } = await import('@/lib/templates');
+          const template = getTemplateById(templateId);
+          const { getFirstMissingField, generatePromptForFieldSource } = await import('./flows/templateConfigFlow');
+          const missing = getFirstMissingField(template!, {});
+
+          if (missing) {
+            replyText = `✅ Website template updated to *${template?.name}*!\n\nLet's customize your website content step-by-step.`;
+            await sendWhatsAppMessage(phoneNumber, replyText);
+            await new Promise(r => setTimeout(r, 1500));
+            
+            const fieldPrompt = generatePromptForFieldSource(missing.page, missing.section, missing.field);
+            await sendWhatsAppMessage(phoneNumber, fieldPrompt);
+            
+            await prisma.whatsappSession.update({
+              where: { phoneNumber },
+              data: { 
+                step: 'ask_field_source', 
+                collectedData: { 
+                  businessId: existingBusiness.id,
+                  targetPageId: missing.page?.id,
+                  targetSectionId: missing.section.id,
+                  targetFieldId: missing.field.id
+                } 
+              },
+            });
+          } else {
+            const storeUrl = getStoreUrl(existingBusiness.slug);
+            replyText = `✅ Website template updated to *${template?.name}*!\n\n🔗 *Store Link:* ${storeUrl}\n\nType *MENU* to see more options.`;
+            nextStep = 'completed';
+          }
+        } else {
+          replyText = `Please reply with *1* (AI) or *2* (Manual).`;
+          nextStep = 'collect_edit_template_choice';
+        }
+        break;
+      }
 
       case 'ask_add_product':
         if (text.toUpperCase() === 'YES' || text.toUpperCase() === 'HAAN' || text === '1') {
@@ -965,7 +1142,19 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
   const mission: string | null = aiContent.mission || null;
   const marketingDesc: string | null = aiContent.marketingDesc || null;
 
-  
+  let templateConfig = {};
+  if (data.templateContentSource === 'ai') {
+    try {
+      templateConfig = await generateTemplateConfig(data.template || 'minimal', {
+        name: data.name,
+        category: data.category || 'General',
+        description: data.description || '',
+        location: data.location || '',
+      });
+    } catch (e) {
+      console.error("AI template config generation failed in onboarding:", e);
+    }
+  }
 
   let logoUrl = null;
   let faviconUrl = null;
@@ -982,6 +1171,7 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
       location: data.location,
       category: data.category,
       templateType: data.template || 'minimal',
+      templateConfig,
       headline,
       tagline,
       vision,
