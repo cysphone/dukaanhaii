@@ -57,32 +57,7 @@ const FallbackRegistry: Record<string, React.FC<any>> = {
   ProductDetailSection
 };
 
-const TemplateSpecificRegistries: Record<string, Record<string, React.FC<any>>> = {
-  'premium-restaurant-v2': {
-    HeroSection: RestaurantHeroSection,
-    AboutSection: RestaurantAboutSection,
-    FeaturedMenuSection: RestaurantFeaturedMenuSection
-  },
-  'premium-gym-v2': {
-    VideoHeroSection: GymVideoHeroSection,
-    CardsSection: GymCardsSection,
-    TextSection: GymTextSection
-  },
-  'premium-ecommerce-v2': {
-    SplitHeroSection: RetailSplitHeroSection,
-    ProductCarouselSection: RetailProductCarouselSection,
-    IconGridSection: RetailIconGridSection
-  },
-  'premium-law-v2': {
-    SplitHeroSection: LawSplitHeroSection
-  },
-  'premium-dental-v2': {
-    HeroSection: DentalHeroSection
-  },
-  'premium-bakery-v2': {
-    HeroSection: BakeryHeroSection
-  }
-};
+const TemplateSpecificRegistries: Record<string, Record<string, React.FC<any>>> = {};
 
 export default function TemplateEngine({
   business,

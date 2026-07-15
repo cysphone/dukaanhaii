@@ -17,7 +17,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/dashboard');
+      router.push('/onboarding');
     }
   }, [status, router]);
 
@@ -43,7 +43,7 @@ export default function RegisterPage() {
 
       // Auto sign in
       await signIn('credentials', { email, password, redirect: false });
-      router.push('/dashboard');
+      router.push('/onboarding');
     } catch {
       setError('Something went wrong. Please try again.');
       setLoading(false);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatPrice, getStoreUrl } from '@/lib/utils';
 
 interface DashboardData {
@@ -18,6 +19,7 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,10 @@ export default function DashboardPage() {
     fetch('/api/business/me')
       .then((r) => r.json())
       .then((d) => {
+        if (!d.business) {
+          router.push('/onboarding');
+          return;
+        }
         setData(d);
         setLoading(false);
       })

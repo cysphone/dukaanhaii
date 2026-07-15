@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TEMPLATES, TEMPLATE_CATEGORIES, ECOMMERCE_SUBCATEGORIES, TemplateCategory, TemplateSubcategory } from '@/lib/templates';
+import { TEMPLATES, TEMPLATE_CATEGORIES, TemplateCategory } from '@/lib/templates';
 
 export default function TemplatesPage() {
   const [business, setBusiness] = useState<any>(null);
@@ -10,7 +10,6 @@ export default function TemplatesPage() {
   const [saved, setSaved] = useState(false);
   
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>('all');
-  const [activeSubcategory, setActiveSubcategory] = useState<TemplateSubcategory | 'all'>('all');
   const [showModal, setShowModal] = useState(false);
   const [aiSaved, setAiSaved] = useState(false);
 
@@ -26,7 +25,6 @@ export default function TemplatesPage() {
             const t = TEMPLATES.find(x => x.id === d.business.templateType);
             if (t) {
               setActiveCategory(t.category as TemplateCategory);
-              if (t.subcategory) setActiveSubcategory(t.subcategory as TemplateSubcategory);
             }
           }
         }
@@ -74,9 +72,6 @@ export default function TemplatesPage() {
 
   const filteredTemplates = TEMPLATES.filter(t => {
     if (activeCategory !== 'all' && t.category !== activeCategory) return false;
-    if (activeCategory === 'Retail' && activeSubcategory !== 'all') {
-      return t.subcategory === activeSubcategory;
-    }
     return true;
   });
 
@@ -95,7 +90,6 @@ export default function TemplatesPage() {
               key={cat.id}
               onClick={() => {
                 setActiveCategory(cat.id as TemplateCategory);
-                setActiveSubcategory('all');
               }}
               className={`pb-3 font-semibold text-sm transition-colors whitespace-nowrap ${
                 activeCategory === cat.id
@@ -108,35 +102,6 @@ export default function TemplatesPage() {
           ))}
         </div>
       </div>
-
-      {/* Subcategory Navigation for Retail */}
-      {activeCategory === 'Retail' && (
-        <div className="flex gap-2 overflow-x-auto py-2">
-          <button
-            onClick={() => setActiveSubcategory('all')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              activeSubcategory === 'all'
-                ? 'bg-surface-800 text-white'
-                : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
-            }`}
-          >
-            All Retail
-          </button>
-          {ECOMMERCE_SUBCATEGORIES.map(sub => (
-            <button
-              key={sub.id}
-              onClick={() => setActiveSubcategory(sub.id as TemplateSubcategory)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                activeSubcategory === sub.id
-                  ? 'bg-surface-800 text-white'
-                  : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
-              }`}
-            >
-              {sub.name}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Templates Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-4">

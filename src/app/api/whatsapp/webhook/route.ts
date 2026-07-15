@@ -1145,7 +1145,7 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
   let templateConfig = {};
   if (data.templateContentSource === 'ai') {
     try {
-      templateConfig = await generateTemplateConfig(data.template || 'minimal', {
+      templateConfig = await generateTemplateConfig(data.template || 'ecommerce-multipage-v1', {
         name: data.name,
         category: data.category || 'General',
         description: data.description || '',
@@ -1170,7 +1170,7 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
       whatsappNumber: data.whatsapp || phoneNumber,
       location: data.location,
       category: data.category,
-      templateType: data.template || 'minimal',
+      templateType: data.template || 'ecommerce-multipage-v1',
       templateConfig,
       headline,
       tagline,

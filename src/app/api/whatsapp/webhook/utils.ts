@@ -9,9 +9,9 @@ const PHONE_ID = process.env.WHATSAPP_PHONE_ID!;
 export const getTemplatePrompt = (title: string) => {
   let message = `${title}\n\n`;
   TEMPLATES.forEach((t, i) => {
-    message += `*${i + 1}.* ${t.preview} *${t.name}* — ${t.tag}\n`;
+    message += `*${i + 1}.* *${t.name}*\n_${t.desc}_\n\n`;
   });
-  message += `\nReply with a number from 1 to ${TEMPLATES.length}.`;
+  message += `Reply with a number from 1 to ${TEMPLATES.length}.`;
   return message;
 };
 

@@ -14,54 +14,30 @@ export interface TemplateTheme {
 }
 
 export const TemplateThemes: Record<string, TemplateTheme> = {
-  'premium-restaurant-v2': {
-    headingFont: playfair.variable,
-    bodyFont: lato.variable,
-    cssVariables: {
-      '--radius-base': '0px', // Restaurants usually look better with sharp or perfectly round
-      '--spacing-section': '6rem',
-    } as React.CSSProperties,
-  },
-  'premium-gym-v2': {
-    headingFont: anton.variable,
-    bodyFont: roboto.variable,
-    cssVariables: {
-      '--radius-base': '0px',
-      '--spacing-section': '4rem',
-    } as React.CSSProperties,
-  },
-  'premium-ecommerce-v2': {
+  'ecommerce-multipage-v1': {
     headingFont: inter.variable,
     bodyFont: inter.variable,
     cssVariables: {
-      '--radius-base': '12px',
+      '--radius-base': '8px',
       '--spacing-section': '5rem',
     } as React.CSSProperties,
   },
-  'premium-law-v2': {
+  'service-multipage-v1': {
     headingFont: playfair.variable,
-    bodyFont: inter.variable,
+    bodyFont: lato.variable,
     cssVariables: {
       '--radius-base': '4px',
       '--spacing-section': '6rem',
     } as React.CSSProperties,
   },
-  'premium-dental-v2': {
-    headingFont: roboto.variable,
-    bodyFont: inter.variable,
+  'singlepage-v1': {
+    headingFont: oswald.variable,
+    bodyFont: roboto.variable,
     cssVariables: {
-      '--radius-base': '24px',
+      '--radius-base': '12px',
       '--spacing-section': '5rem',
     } as React.CSSProperties,
-  },
-  'premium-bakery-v2': {
-    headingFont: playfair.variable,
-    bodyFont: lato.variable,
-    cssVariables: {
-      '--radius-base': '16px',
-      '--spacing-section': '5rem',
-    } as React.CSSProperties,
-  },
+  }
 };
 
 export const FallbackTheme: TemplateTheme = {
