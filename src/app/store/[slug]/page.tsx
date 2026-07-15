@@ -21,6 +21,7 @@ import PlayfulTemplate from '@/components/templates/PlayfulTemplate';
 import ServiceModernTemplate from '@/components/templates/service-modern';
 import PortfolioCreativeTemplate from '@/components/templates/PortfolioCreativeTemplate';
 import LandingMinimalTemplate from '@/components/templates/LandingMinimalTemplate';
+import YarranTemplate from '@/components/templates/YarranTemplate';
 
 interface StorePageProps {
   params: { slug: string };
@@ -107,6 +108,8 @@ export default async function StorePage({ params, searchParams }: StorePageProps
       return <PortfolioCreativeTemplate {...props} />;
     case 'landing-minimal':
       return <LandingMinimalTemplate {...props} />;
+    case 'yarran':
+      return <YarranTemplate {...props} />;
     default:
       return <MinimalTemplate {...props} />;
   }

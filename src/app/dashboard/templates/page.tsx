@@ -9,6 +9,10 @@ export default function TemplatesPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   
+  const [yarranModalOpen, setYarranModalOpen] = useState(false);
+  const [yarranInput, setYarranInput] = useState('');
+  const [generatingAi, setGeneratingAi] = useState(false);
+
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>('general');
   const [activeSubcategory, setActiveSubcategory] = useState<TemplateSubcategory | 'all'>('all');
 
@@ -33,9 +37,24 @@ export default function TemplatesPage() {
 
   const handleSave = async () => {
     if (!business) return;
+
+    if (selected === 'yarran' && business.templateType !== 'yarran') {
+      setYarranModalOpen(true);
+      return;
+    }
+
+    await saveTemplate(selected);
+  };
+
+  const saveTemplate = async (templateId: string, extraData?: any) => {
     setSaving(true);
     const formData = new FormData();
-    formData.append('templateType', selected);
+    formData.append('templateType', templateId);
+    
+    if (extraData) {
+      if (extraData.vision) formData.append('vision', extraData.vision);
+      if (extraData.about) formData.append('about', extraData.about);
+    }
 
     const res = await fetch(`/api/business/${business.id}`, {
       method: 'PUT',
@@ -46,6 +65,38 @@ export default function TemplatesPage() {
       setTimeout(() => setSaved(false), 3000);
     }
     setSaving(false);
+  };
+
+  const handleYarranSubmit = async (useAi: boolean) => {
+    setYarranModalOpen(false);
+    if (useAi) {
+      setGeneratingAi(true);
+      try {
+        const aiPrompt = `Generate a short mission statement (vision) and a brief about description (about) for a specialty business in the insurance/services industry. Business Name: ${business?.name}.`;
+        const aiResponse = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: aiPrompt })
+        });
+        
+        let vision = "Demand Excellence.";
+        let about = "Built on the belief that algorithms can't replace experience. We partner with you for the long term.";
+        
+        if (aiResponse.ok) {
+           const data = await aiResponse.json();
+           if (data.text) {
+             about = data.text;
+           }
+        }
+        await saveTemplate('yarran', { vision, about });
+      } catch (e) {
+        console.error('AI Error', e);
+        await saveTemplate('yarran');
+      }
+      setGeneratingAi(false);
+    } else {
+      await saveTemplate('yarran', { about: yarranInput, vision: "Demand Excellence." });
+    }
   };
 
   const filteredTemplates = TEMPLATES.filter(t => {
@@ -173,19 +224,66 @@ export default function TemplatesPage() {
       )}
 
       {/* Save Footer (Fixed) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-surface-200 p-4 z-50 md:ml-64">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-surface-200 p-4 z-40 md:ml-64">
         <div className="max-w-6xl mx-auto flex items-center justify-end gap-4 pr-4">
+          {generatingAi && <span className="text-brand-600 text-sm font-bold animate-pulse">✨ AI Generating Details...</span>}
           {saved && <span className="text-green-600 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-lg">✓ Template applied live!</span>}
           {!business && <span className="text-surface-400 text-sm">Create a business first to apply templates</span>}
           <button
             onClick={handleSave}
-            disabled={saving || !business}
+            disabled={saving || generatingAi || !business}
             className="btn-primary px-8 py-2.5 shadow-md hover:shadow-lg transition-all"
           >
             {saving ? 'Saving...' : 'Apply Template'}
           </button>
         </div>
       </div>
+
+      {/* Yarran Details Modal */}
+      {yarranModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg">
+            <h2 className="text-2xl font-bold mb-2">Yarran Template Details</h2>
+            <p className="text-surface-500 mb-6 text-sm">
+              This premium layout requires detailed company mission and service descriptions to look its best.
+            </p>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-2">Enter Details Manually (Optional)</label>
+              <textarea 
+                value={yarranInput}
+                onChange={(e) => setYarranInput(e.target.value)}
+                placeholder="We specialize in..."
+                className="w-full border border-surface-200 rounded-lg p-3 min-h-[120px] focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => handleYarranSubmit(true)}
+                className="w-full bg-brand-500 text-white rounded-lg py-3 font-bold hover:bg-brand-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <span>✨</span> Let AI Generate Details
+              </button>
+              
+              <button 
+                onClick={() => handleYarranSubmit(false)}
+                disabled={!yarranInput.trim()}
+                className="w-full bg-surface-100 text-surface-700 rounded-lg py-3 font-bold hover:bg-surface-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Manual Input
+              </button>
+              
+              <button 
+                onClick={() => setYarranModalOpen(false)}
+                className="w-full text-surface-500 rounded-lg py-2 text-sm font-semibold hover:text-surface-700 transition-colors mt-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

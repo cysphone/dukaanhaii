@@ -538,16 +538,51 @@ export async function POST(req: NextRequest) {
         const idx = parseInt(text) - 1;
         if (!isNaN(idx) && idx >= 0 && idx < TEMPLATES.length) {
           const t = TEMPLATES[idx];
-          await prisma.business.update({
-            where: { id: collectedData.businessId },
-            data: { templateType: t.id }
-          });
-          replyText = `✅ Website template successfully updated to *${t.name}*!\n\nType *MENU* to return to the main menu.`;
-          nextStep = 'completed';
+          collectedData.template = t.id;
+          
+          if (t.id === 'yarran') {
+            replyText = `You selected the Yarran Template. To build this premium layout, we need your detailed company mission and services.\n\n1️⃣ Let AI generate it\n2️⃣ I'll enter it manually`;
+            nextStep = 'ask_yarran_edit_details_choice';
+          } else {
+            await prisma.business.update({
+              where: { id: collectedData.businessId },
+              data: { templateType: t.id }
+            });
+            replyText = `✅ Website template successfully updated to *${t.name}*!\n\nType *MENU* to return to the main menu.`;
+            nextStep = 'completed';
+          }
         } else {
           replyText = `Please reply with a number from 1 to ${TEMPLATES.length}.`;
           nextStep = 'save_website_template';
         }
+        break;
+      }
+
+      case 'ask_yarran_edit_details_choice': {
+        if (text === '1' || msgUpper === 'AI') {
+           replyText = `⏳ Generating details using AI...`;
+           nextStep = 'generating_yarran_edit_ai'; // Will be handled immediately after switch
+        } else if (text === '2' || msgUpper === 'MANUALLY') {
+           replyText = `Please enter your company description and specialty details:`;
+           nextStep = 'collect_yarran_edit_manual_details';
+        } else {
+           replyText = `Please reply with 1 or 2.`;
+           nextStep = 'ask_yarran_edit_details_choice';
+        }
+        break;
+      }
+
+      case 'collect_yarran_edit_manual_details': {
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { 
+            templateType: 'yarran',
+            about: text,
+            vision: 'Demand Excellence.'
+          }
+        });
+        replyText = `✅ Website template successfully updated to *Yarran Specialty*!\n\nType *MENU* to return to the main menu.`;
+        nextStep = 'completed';
         break;
       }
 
@@ -965,11 +1000,16 @@ export async function POST(req: NextRequest) {
 
       case 'collect_template': {
         const idx = parseInt(text) - 1;
-        if (isNaN(idx) || idx < 0 || idx >= TEMPLATES.length) {
-          collectedData.template = 'minimal';
-        } else {
-          const t = TEMPLATES[idx];
-          collectedData.template = t.id;
+        let t = TEMPLATES[0]; // minimal by default
+        if (!isNaN(idx) && idx >= 0 && idx < TEMPLATES.length) {
+          t = TEMPLATES[idx];
+        }
+        collectedData.template = t.id;
+
+        if (t.id === 'yarran') {
+          replyText = `You selected the Yarran Template. To build this premium layout, we need your detailed company mission and services.\n\n1️⃣ Let AI generate it\n2️⃣ I'll enter it manually`;
+          nextStep = 'ask_yarran_onboard_choice';
+          break;
         }
 
         replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your headline & description\n✅ Preparing your website\n\nPlease wait a moment! ⏳`;
@@ -981,6 +1021,55 @@ export async function POST(req: NextRequest) {
           await sendWhatsAppMessage(
             phoneNumber,
             `🎉 *Congratulations! Your store is ready!*\n\n🔗 *Store Link:* ${storeUrl}\n\nShare it with your customers now! 🚀\n\n_Visit your dashboard here:_ ${appUrl}/login`
+          );
+          await new Promise(r => setTimeout(r, 2000));
+          await sendWhatsAppMessage(
+            phoneNumber,
+            `Would you like to add a new product to your store?\nReply *YES* to add or *NO* to skip.`
+          );
+          await prisma.whatsappSession.update({
+            where: { phoneNumber },
+            data: { step: 'ask_add_product', collectedData: { businessId } },
+          });
+        }).catch(async (e) => {
+          console.error('Error creating business:', e);
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+          await sendWhatsAppMessage(phoneNumber, `❌ Something went wrong. Please try creating manually on ${rootDomain}.`);
+          await prisma.whatsappSession.update({
+            where: { phoneNumber },
+            data: { step: 'start', collectedData: {} },
+          });
+        });
+        break;
+      }
+
+      case 'ask_yarran_onboard_choice': {
+        if (text === '1' || msgUpper === 'AI') {
+           replyText = `⏳ Generating details using AI...`;
+           nextStep = 'generating_yarran_onboard_ai'; // Will be handled after switch
+        } else if (text === '2' || msgUpper === 'MANUALLY') {
+           replyText = `Please enter your company description and specialty details:`;
+           nextStep = 'collect_yarran_onboard_manual';
+        } else {
+           replyText = `Please reply with 1 or 2.`;
+           nextStep = 'ask_yarran_onboard_choice';
+        }
+        break;
+      }
+
+      case 'collect_yarran_onboard_manual': {
+        collectedData.about = text;
+        collectedData.vision = 'Demand Excellence.';
+        
+        replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your details\n✅ Preparing your website\n\nPlease wait a moment! ⏳`;
+        nextStep = 'creating';
+
+        // Create business (async)
+        createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+          await sendWhatsAppMessage(
+            phoneNumber,
+            `🎉 *Congratulations! Your Yarran store is ready!*\n\n🔗 *Store Link:* ${storeUrl}\n\nShare it with your customers now! 🚀\n\n_Visit your dashboard here:_ ${appUrl}/login`
           );
           await new Promise(r => setTimeout(r, 2000));
           await sendWhatsAppMessage(

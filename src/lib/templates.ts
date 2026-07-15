@@ -57,6 +57,7 @@ export const TEMPLATES: TemplateDef[] = [
     { id: 'service-modern', name: 'Modern Agency', desc: 'Sleek, professional design for agencies and service businesses. Focus on services and mission.', colors: ['#0f172a', '#f8fafc', '#3b82f6'], tag: 'Service', preview: '💼', category: 'service' },
     { id: 'portfolio-creative', name: 'Creative Studio', desc: 'Bold typography, big images, designed for creative agencies and portfolios.', colors: ['#000000', '#ffffff', '#a3e635'], tag: 'Creative', preview: '🎨', category: 'service' },
     { id: 'landing-minimal', name: 'Minimal Landing', desc: 'Clean, one-page lead generation site without products.', colors: ['#0f172a', '#ffffff', '#e2e8f0'], tag: 'Simple', preview: '📄', category: 'service' },
+    { id: 'yarran', name: 'Yarran Specialty', desc: 'Premium, asymmetric layout with dark green accents. Perfect for specialty services and insurance.', colors: ['#F9F8F6', '#0E1111', '#496F36'], tag: 'Premium', preview: '🏛️', category: 'service' },
 ];
 
 export function getTemplateById(id: string): TemplateDef | undefined {
