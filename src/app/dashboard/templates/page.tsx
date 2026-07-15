@@ -54,6 +54,7 @@ export default function TemplatesPage() {
     if (extraData) {
       if (extraData.vision) formData.append('vision', extraData.vision);
       if (extraData.about) formData.append('about', extraData.about);
+      if (extraData.bannerUrl) formData.append('bannerUrl', extraData.bannerUrl);
     }
 
     const res = await fetch(`/api/business/${business.id}`, {
@@ -88,7 +89,12 @@ export default function TemplatesPage() {
              about = data.text;
            }
         }
-        await saveTemplate('yarran', { vision, about });
+
+        // Generate a free image related to their business category using Unsplash
+        const categorySearch = business?.category ? encodeURIComponent(business.category) : 'business,office';
+        const unsplashUrl = `https://source.unsplash.com/featured/800x800/?${categorySearch},professional`;
+
+        await saveTemplate('yarran', { vision, about, bannerUrl: unsplashUrl });
       } catch (e) {
         console.error('AI Error', e);
         await saveTemplate('yarran');

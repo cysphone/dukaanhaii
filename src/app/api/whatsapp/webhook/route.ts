@@ -1390,6 +1390,96 @@ export async function POST(req: NextRequest) {
     if (replyText) {
       await sendWhatsAppMessage(phoneNumber, replyText);
     }
+    
+    // Post-switch async AI trigger if AI was selected for Yarran
+    if (nextStep === 'generating_yarran_edit_ai') {
+      const bizName = existingBusiness?.name || 'Your Company';
+      const aiPrompt = `Generate a short mission statement (vision) and a brief about description (about) for a specialty business in the insurance/services industry. Business Name: ${bizName}. Output MUST be just the paragraph for 'about'.`;
+      let generatedAbout = "Built on the belief that algorithms can't replace experience. We partner with you for the long term.";
+      
+      try {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(aiPrompt);
+        const response = await result.response;
+        generatedAbout = response.text() || generatedAbout;
+      } catch(e) { console.error('Yarran Edit AI failed', e); }
+
+      const categorySearch = existingBusiness?.category ? encodeURIComponent(existingBusiness.category) : 'business,office';
+      const unsplashUrl = `https://source.unsplash.com/featured/800x800/?${categorySearch},professional`;
+
+      await prisma.business.update({
+        where: { id: collectedData.businessId },
+        data: { 
+          templateType: 'yarran',
+          about: generatedAbout.substring(0, 500),
+          vision: 'Demand Excellence.',
+          bannerUrl: unsplashUrl
+        }
+      });
+      await sendWhatsAppMessage(phoneNumber, `✅ Website template successfully updated to *Yarran Specialty* with AI generated content!\n\nType *MENU* to return to the main menu.`);
+      
+      await prisma.whatsappSession.update({
+        where: { phoneNumber },
+        data: { step: 'completed' }
+      });
+    }
+    
+    if (nextStep === 'generating_yarran_onboard_ai') {
+      const bizName = collectedData.name || 'Your Company';
+      const aiPrompt = `Generate a short mission statement (vision) and a brief about description (about) for a specialty business in the insurance/services industry. Business Name: ${bizName}. Output MUST be just the paragraph for 'about'.`;
+      let generatedAbout = "Built on the belief that algorithms can't replace experience. We partner with you for the long term.";
+      
+      try {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(aiPrompt);
+        const response = await result.response;
+        generatedAbout = response.text() || generatedAbout;
+      } catch(e) { console.error('Yarran Onboard AI failed', e); }
+      
+      const categorySearch = collectedData.category ? encodeURIComponent(collectedData.category) : 'business,office';
+      const unsplashUrl = `https://source.unsplash.com/featured/800x800/?${categorySearch},professional`;
+
+      collectedData.about = generatedAbout.substring(0, 500);
+      collectedData.vision = 'Demand Excellence.';
+      collectedData.bannerUrl = unsplashUrl;
+      
+      await sendWhatsAppMessage(phoneNumber, `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your details\n✅ Preparing your website\n\nPlease wait a moment! ⏳`);
+      
+      // Create business (async)
+      createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+        await sendWhatsAppMessage(
+          phoneNumber,
+          `🎉 *Congratulations! Your Yarran store is ready!*\n\n🔗 *Store Link:* ${storeUrl}\n\nShare it with your customers now! 🚀\n\n_Visit your dashboard here:_ ${appUrl}/login`
+        );
+        await new Promise(r => setTimeout(r, 2000));
+        await sendWhatsAppMessage(
+          phoneNumber,
+          `Would you like to add a new product to your store?\nReply *YES* to add or *NO* to skip.`
+        );
+        await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'ask_add_product', collectedData: { businessId } },
+        });
+      }).catch(async (e) => {
+        console.error('Error creating business:', e);
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+        await sendWhatsAppMessage(phoneNumber, `❌ Something went wrong. Please try creating manually on ${rootDomain}.`);
+        await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'start', collectedData: {} },
+        });
+      });
+      
+      await prisma.whatsappSession.update({
+        where: { phoneNumber },
+        data: { step: 'creating' }
+      });
+    }
 
     return NextResponse.json({ status: 'ok' });
   } catch (error) {

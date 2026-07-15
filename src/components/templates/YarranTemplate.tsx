@@ -161,9 +161,12 @@ export default function YarranTemplate({ business, products }: YarranTemplatePro
                 ))}
               </div>
             </div>
-            <div className="relative w-full aspect-square rounded-full overflow-hidden bg-black/5">
-              {/* Decorative circle placeholder */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#496F36]/20 to-transparent" />
+            <div className="relative w-full aspect-square rounded-full overflow-hidden bg-black/5 flex items-center justify-center">
+              {business.bannerUrl ? (
+                <Image src={business.bannerUrl} alt="Decorative" fill className="object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#496F36]/20 to-transparent" />
+              )}
             </div>
           </div>
         </section>
