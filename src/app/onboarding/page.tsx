@@ -59,7 +59,13 @@ export default function OnboardingWizard() {
       // 2. Generate Template if AI selected
       if (useAi) {
         const tRes = await fetch(`/api/business/${business.id}/generate-template`, {
-          method: 'POST'
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            templateId: TEMPLATE_MAP[formData.category] || 'ecommerce-multipage-v1'
+          })
         });
         if (!tRes.ok) throw new Error('Failed to generate template content');
       }
